@@ -1,19 +1,21 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
+  let isHindi = false;
+  let patientName = "there";
+
   try {
     const { transcript, context, history = [] } = await req.json();
 
+    isHindi = context?.language === "hi";
+    patientName = context?.patientName || "there";
     const apiKey = process.env.GROQ_API_KEY;
-    const isHindi = context?.language === "hi";
-    const patientName = context?.patientName || "there";
-    
-    if (!apiKey || apiKey === 'mock_groq_key') {
-      await new Promise(resolve => setTimeout(resolve, 800));
+
+    if (!apiKey || apiKey.trim() === '' || apiKey.includes('your_groq_api_key') || apiKey === 'mock_groq_key') {
       return NextResponse.json({
         response: isHindi 
           ? `नमस्ते ${context?.patientName ? context.patientName + " जी" : ""}! आज आप कैसा महसूस कर रहे हैं?`
-          : `Hello ${patientName}! How are you feeling today? I am here with you.`
+          : `Hello ${patientName}! How are you feeling today? I am here to assist you.`
       });
     }
 
@@ -33,8 +35,8 @@ Only output valid JSON in the exact following structure with no markdown:
 }`
       : `You are SMRITI, a gentle, patient, and warm voice companion for an elderly person.
 Respond to the user's spoken words warmly, respectfully, and clearly in ENGLISH.
-Follow these strict rules:
-- Your response MUST be 100% in English language. Do NOT use Hindi or Devanagari script.
+CRITICAL INSTRUCTION:
+- You MUST respond 100% in pure ENGLISH language. Do NOT use Hindi or Devanagari script.
 - Keep it concise (1 to 2 short, comforting sentences) because it will be spoken aloud to the elder.
 - Never use medical jargon or clinical diagnosis.
 - Be extremely polite, patient, and uplifting.
@@ -91,24 +93,27 @@ Only output valid JSON in the exact following structure with no markdown:
       });
     }
 
-    if (!response.ok) {
-      throw new Error(`Groq API error: ${response.status}`);
+    if (response.ok) {
+      const data = await response.json();
+      const content = JSON.parse(data.choices[0].message.content);
+      if (content.response) {
+        return NextResponse.json(content);
+      }
     }
 
-    const data = await response.json();
-    const content = JSON.parse(data.choices[0].message.content);
-
-    if (!content.response) {
-      throw new Error("Invalid structure returned from Groq");
-    }
-
-    return NextResponse.json(content);
+    // Graceful fallback in the correct language if API call fails
+    return NextResponse.json({
+      response: isHindi
+        ? `नमस्ते ${context?.patientName ? context.patientName + " जी" : ""}! मैं हमेशा आपके साथ हूँ।`
+        : `Hello ${patientName}! I am here with you. How can I help today?`
+    });
 
   } catch (error) {
     console.error("Assistant Chat Error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate response" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      response: isHindi 
+        ? "नमस्ते! मैं आपकी कैसे मदद कर सकती हूँ?"
+        : `Hello ${patientName}! How are you feeling today? I am here with you.`
+    });
   }
 }
