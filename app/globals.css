@@ -1,0 +1,208 @@
+@import "tailwindcss";
+
+:root,
+[data-region="assam"] {
+  /* ...existing color vars... */
+  --smriti-display: "Fraunces", Georgia, serif;
+  --smriti-heading: "Fraunces", Georgia, serif;
+  --smriti-body: "Inter", system-ui, sans-serif;
+}
+
+/* repeat --smriti-display / --smriti-heading / --smriti-body per region block,
+   swapping the display/heading face per the personality notes in Section 7.3–7.10
+   (e.g. Meghalaya = airy/rounded face, Nagaland = stronger structured face) —
+   keep --smriti-body the same accessible sans everywhere per Section 7.1 */
+
+body {
+  font-family: var(--smriti-body);
+}
+
+:root,
+[data-region="assam"] {
+  /* Smriti Regional Theme: Assam */
+  --smriti-primary: #8B2F2F;
+  --smriti-secondary: #B8893C;
+  --smriti-accent: #D8A84E;
+  --smriti-bg: #F7F1E6;
+  --smriti-surface: #FFFDF8;
+  --smriti-text: #26332F;
+  --smriti-muted: #6F756F;
+  --smriti-border: rgba(38, 51, 47, 0.12);
+  --smriti-success: #527A5A;
+  --smriti-warning: #A97836;
+  --smriti-error: #A7443D;
+  --background: var(--smriti-bg);
+  --foreground: var(--smriti-text);
+}
+
+[data-region="arunachal-pradesh"] {
+  --smriti-primary: #315B45;
+  --smriti-secondary: #7A5A3A;
+  --smriti-accent: #D58A3A;
+  --smriti-bg: #F2F0E7;
+  --smriti-surface: #FCFBF5;
+  --smriti-text: #24312B;
+  --smriti-muted: #70766F;
+  --smriti-border: rgba(36, 49, 43, 0.12);
+  --smriti-success: #527A5A;
+  --smriti-warning: #A87936;
+  --smriti-error: #A84B42;
+  --background: var(--smriti-bg);
+  --foreground: var(--smriti-text);
+}
+
+[data-region="manipur"] {
+  --smriti-primary: #713A43;
+  --smriti-secondary: #526A57;
+  --smriti-accent: #C89B5B;
+  --smriti-bg: #F7F0E7;
+  --smriti-surface: #FFFDFC;
+  --smriti-text: #2D302D;
+  --smriti-muted: #74746E;
+  --smriti-border: rgba(45, 48, 45, 0.12);
+  --smriti-success: #527A5A;
+  --smriti-warning: #A87936;
+  --smriti-error: #A74646;
+  --background: var(--smriti-bg);
+  --foreground: var(--smriti-text);
+}
+
+[data-region="meghalaya"] {
+  --smriti-primary: #3E7166;
+  --smriti-secondary: #7896A1;
+  --smriti-accent: #D59A61;
+  --smriti-bg: #F1F5F2;
+  --smriti-surface: #FCFEFD;
+  --smriti-text: #273331;
+  --smriti-muted: #717B78;
+  --smriti-border: rgba(39, 51, 49, 0.12);
+  --smriti-success: #4E8064;
+  --smriti-warning: #A77A44;
+  --smriti-error: #A64D48;
+  --background: var(--smriti-bg);
+  --foreground: var(--smriti-text);
+}
+
+[data-region="mizoram"] {
+  --smriti-primary: #8A3440;
+  --smriti-secondary: #426B50;
+  --smriti-accent: #D8A95A;
+  --smriti-bg: #FAF3EA;
+  --smriti-surface: #FFFDFC;
+  --smriti-text: #2D302E;
+  --smriti-muted: #77746E;
+  --smriti-border: rgba(45, 48, 46, 0.12);
+  --smriti-success: #4E7C5B;
+  --smriti-warning: #A9793F;
+  --smriti-error: #A64747;
+  --background: var(--smriti-bg);
+  --foreground: var(--smriti-text);
+}
+
+[data-region="nagaland"] {
+  --smriti-primary: #4E3B35;
+  --smriti-secondary: #9B4D32;
+  --smriti-accent: #C7954A;
+  --smriti-bg: #F5EEE4;
+  --smriti-surface: #FFFDF9;
+  --smriti-text: #282A28;
+  --smriti-muted: #74716B;
+  --smriti-border: rgba(40, 42, 40, 0.12);
+  --smriti-success: #58745D;
+  --smriti-warning: #A6783D;
+  --smriti-error: #A34B40;
+  --background: var(--smriti-bg);
+  --foreground: var(--smriti-text);
+}
+
+[data-region="tripura"] {
+  --smriti-primary: #9A4936;
+  --smriti-secondary: #3E614E;
+  --smriti-accent: #D39B58;
+  --smriti-bg: #F8F0E4;
+  --smriti-surface: #FFFDF8;
+  --smriti-text: #2E302C;
+  --smriti-muted: #77736A;
+  --smriti-border: rgba(46, 48, 44, 0.12);
+  --smriti-success: #52795D;
+  --smriti-warning: #A97B40;
+  --smriti-error: #A64D42;
+  --background: var(--smriti-bg);
+  --foreground: var(--smriti-text);
+}
+
+[data-region="sikkim"] {
+  --smriti-primary: #365C78;
+  --smriti-secondary: #C07A3B;
+  --smriti-accent: #D1A14B;
+  --smriti-bg: #F3F1EA;
+  --smriti-surface: #FEFEFC;
+  --smriti-text: #263038;
+  --smriti-muted: #71767A;
+  --smriti-border: rgba(38, 48, 56, 0.12);
+  --smriti-success: #527A61;
+  --smriti-warning: #A8783E;
+  --smriti-error: #A54A42;
+  --background: var(--smriti-bg);
+  --foreground: var(--smriti-text);
+}
+
+/* HIGH CONTRAST MODE OVERRIDES */
+[data-high-contrast="true"] {
+  --smriti-text: #000000;
+  --smriti-muted: #333333;
+  --smriti-border: #000000;
+  --smriti-surface: #FFFFFF;
+  --smriti-bg: #F0F0F0;
+  --foreground: #000000;
+  --background: #FFFFFF;
+}
+
+@theme inline {
+  --color-smriti-primary: var(--smriti-primary);
+  --color-smriti-secondary: var(--smriti-secondary);
+  --color-smriti-accent: var(--smriti-accent);
+  --color-smriti-bg: var(--smriti-bg);
+  --color-smriti-surface: var(--smriti-surface);
+  --color-smriti-text: var(--smriti-text);
+  --color-smriti-muted: var(--smriti-muted);
+  --color-smriti-border: var(--smriti-border);
+  --color-smriti-success: var(--smriti-success);
+  --color-smriti-warning: var(--smriti-warning);
+  --color-smriti-error: var(--smriti-error);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  /* Prevent double tap to zoom which can confuse elderly users */
+  touch-action: manipulation;
+}
+
+/* Base utility for large touch targets */
+.touch-target {
+  min-height: 48px;
+  min-width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Custom Scrollbar for a polished feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--theme-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-primary);
+}
