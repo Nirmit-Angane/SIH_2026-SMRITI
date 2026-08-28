@@ -5,34 +5,36 @@ export async function POST(req: Request) {
     const { transcript, context, history = [] } = await req.json();
 
     const apiKey = process.env.GROQ_API_KEY;
+    const isHindi = context?.language === "hi";
+    const patientName = context?.patientName || "there";
     
     if (!apiKey || apiKey === 'mock_groq_key') {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 800));
       return NextResponse.json({
-        response: "नमस्ते, मैं आपकी कैसे मदद कर सकती हूँ?"
+        response: isHindi 
+          ? `नमस्ते ${context?.patientName ? context.patientName + " जी" : ""}! आज आप कैसा महसूस कर रहे हैं?`
+          : `Hello ${patientName}! How are you feeling today? I am here with you.`
       });
     }
-
-    const isHindi = context?.language === "hi";
 
     const systemPrompt = isHindi
       ? `You are SMRITI, a gentle, patient, and warm voice assistant for an elderly person.
 Respond to the user's spoken words gently, respectfully, and warmly in Hindi (Devanagari script).
 Follow these strict rules:
-- Your response MUST be in Hindi text (Devanagari script).
-- Keep it concise (1 to 2 short sentences) because it will be spoken aloud to the elder.
+- Your response MUST be in pure Hindi text (Devanagari script).
+- Keep it concise (1 to 2 short, comforting sentences) because it will be spoken aloud to the elder.
 - Never use medical jargon or provide clinical diagnosis.
 - Be polite, caring and respectful (use 'आप').
 - If context about family or memories is provided, reference it naturally.
 
 Only output valid JSON in the exact following structure with no markdown:
 {
-  "response": "Your Hindi response here"
+  "response": "Your Hindi response in Devanagari script here"
 }`
       : `You are SMRITI, a gentle, patient, and warm voice companion for an elderly person.
-Respond to the user's spoken words warmly, respectfully, and clearly in English.
+Respond to the user's spoken words warmly, respectfully, and clearly in ENGLISH.
 Follow these strict rules:
-- Your response MUST be in clear, simple English.
+- Your response MUST be 100% in English language. Do NOT use Hindi or Devanagari script.
 - Keep it concise (1 to 2 short, comforting sentences) because it will be spoken aloud to the elder.
 - Never use medical jargon or clinical diagnosis.
 - Be extremely polite, patient, and uplifting.
@@ -49,7 +51,7 @@ Only output valid JSON in the exact following structure with no markdown:
       content: msg.role === 'assistant' ? `{ "response": "${msg.content}" }` : `User said: "${msg.content}"`
     }));
 
-    const userPrompt = `User said: "${transcript}"`;
+    const userPrompt = `[TARGET LANGUAGE: ${isHindi ? "Hindi (Devanagari)" : "English"}] User said: "${transcript}"`;
 
     let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
