@@ -34,33 +34,44 @@ export default function Hero() {
           </div>
           
           {/* Right: Calm Memory Album Layout */}
-          <div className="relative lg:ml-auto w-full max-w-[500px] mx-auto hidden sm:block">
-            {/* The Album Base */}
-            <div className="bg-[#FAF6F0] rounded-[32px] p-8 shadow-sm border border-[#E8E2D5] relative">
-              {/* Photo Frame 1 */}
-              <div className="bg-white p-4 pb-12 rounded-xl shadow-sm border border-gray-100 rotate-[-2deg] relative z-20 mx-auto w-[85%]">
-                <div className="aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center relative">
-                   {/* Placeholder for family photo */}
-                   <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=800&auto=format&fit=crop" alt="Family" className="w-full h-full object-cover" />
-                   <div className="absolute inset-0 bg-black/10"></div>
+          <div className="relative lg:ml-auto w-full max-w-[480px] mx-auto hidden sm:block">
+            {/* The Album Container */}
+            <div className="bg-[#FAF6F0] rounded-[36px] p-6 sm:p-8 shadow-md border border-[#E8E2D5] relative">
+              
+              {/* Floating Tag Top Left */}
+              <div className="absolute -top-4 -left-4 z-30 bg-white shadow-lg rounded-full px-4 py-2 border border-smriti-border flex items-center gap-2 text-sm font-bold text-smriti-text">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Daily Gentle Memory</span>
+              </div>
+
+              {/* Main Photo Frame */}
+              <div className="bg-white p-4 pb-12 rounded-2xl shadow-lg border border-gray-100 rotate-[-1.5deg] relative z-10 mx-auto w-full transition-transform hover:rotate-0 duration-300">
+                <div className="aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center relative">
+                   {/* Family photo */}
+                   {/* eslint-disable-next-line @next/next/no-img-element */}
+                   <img 
+                     src="https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=800&auto=format&fit=crop" 
+                     alt="Family gathering at sunset" 
+                     className="w-full h-full object-cover" 
+                   />
+                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                 </div>
-                <p className="absolute bottom-4 left-0 w-full text-center font-medium text-smriti-text/80 text-lg">
-                  Diwali 2025
+                <p className="absolute bottom-3.5 left-0 w-full text-center font-bold text-smriti-text text-lg tracking-wide">
+                  Diwali 2025 • Family Reunion
                 </p>
               </div>
 
-              {/* Stacked Card 2 */}
-              <div className="absolute top-12 -right-4 bg-white p-6 rounded-2xl shadow-md border border-gray-100 rotate-[4deg] z-10 w-64">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-smriti-primary/10 rounded-full flex items-center justify-center shrink-0">
-                    <Heart className="w-7 h-7 text-smriti-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-smriti-text">Connect</h3>
-                    <p className="text-sm text-smriti-muted">Rina shared a memory</p>
-                  </div>
+              {/* Floating Card Bottom Right (High z-index, clearly readable) */}
+              <div className="absolute -bottom-5 -right-5 bg-white p-4 sm:p-5 rounded-2xl shadow-xl border border-smriti-border z-20 flex items-center gap-3.5 max-w-[260px] animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="w-12 h-12 bg-smriti-primary/10 rounded-2xl flex items-center justify-center shrink-0">
+                  <Heart className="w-6 h-6 text-smriti-primary fill-smriti-primary/20" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-base font-extrabold text-smriti-text truncate">Connected</h4>
+                  <p className="text-xs text-smriti-muted truncate">Rina shared a voice note</p>
                 </div>
               </div>
+
             </div>
           </div>
 
