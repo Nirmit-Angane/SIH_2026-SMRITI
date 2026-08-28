@@ -5,15 +5,22 @@ import {
   sendPasswordResetEmail,
   GoogleAuthProvider,
   signInWithPopup,
-  UserCredential
+  setPersistence,
+  browserLocalPersistence
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase/config";
 
 export const authService = {
   async signup(email: string, password: string, name: string, role: string) {
     if (!auth || !db) throw new Error("Firebase is not initialized");
     
+    try {
+      await setPersistence(auth, browserLocalPersistence);
+    } catch (e) {
+      console.warn("Persistence set warning:", e);
+    }
+
     // 1. Create user in Firebase Auth
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
@@ -23,24 +30,52 @@ export const authService = {
       name,
       email,
       role,
-      region: null,
-      language: null,
-      accessibilityPreferences: {},
+      region: "Assam",
+      language: "en",
+      onboardingCompleted: true,
+      accessibilityPreferences: {
+        textSize: "standard",
+        highContrast: false,
+        reducedMotion: false,
+        voiceGuidance: true
+      },
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
     
+    if (typeof window !== "undefined") {
+      localStorage.setItem("smriti_user_active", "true");
+      localStorage.setItem("smriti_onboarding_completed", "true");
+    }
+
     return userCredential;
   },
 
   async login(email: string, password: string) {
     if (!auth) throw new Error("Firebase is not initialized");
-    return await signInWithEmailAndPassword(auth, email, password);
+    
+    try {
+      await setPersistence(auth, browserLocalPersistence);
+    } catch (e) {
+      console.warn("Persistence set warning:", e);
+    }
+
+    const res = await signInWithEmailAndPassword(auth, email, password);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("smriti_user_active", "true");
+    }
+    return res;
   },
 
   async loginWithGoogle(role?: string) {
     if (!auth || !db) throw new Error("Firebase is not initialized");
     
+    try {
+      await setPersistence(auth, browserLocalPersistence);
+    } catch (e) {
+      console.warn("Persistence set warning:", e);
+    }
+
     const provider = new GoogleAuthProvider();
     const userCredential = await signInWithPopup(auth, provider);
     const user = userCredential.user;
@@ -52,15 +87,26 @@ export const authService = {
     if (!userDocSnap.exists()) {
       // Create new profile if it doesn't exist
       await setDoc(userDocRef, {
-        name: user.displayName || "Unknown User",
+        name: user.displayName || "User",
         email: user.email,
-        role: role || "Elderly User", // Default or provided role
-        region: null,
-        language: null,
-        accessibilityPreferences: {},
+        role: role || "Elderly User",
+        region: "Assam",
+        language: "en",
+        onboardingCompleted: true,
+        accessibilityPreferences: {
+          textSize: "standard",
+          highContrast: false,
+          reducedMotion: false,
+          voiceGuidance: true
+        },
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+    }
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("smriti_user_active", "true");
+      localStorage.setItem("smriti_onboarding_completed", "true");
     }
     
     return userCredential;
@@ -72,7 +118,11 @@ export const authService = {
   },
 
   async logout() {
-    if (!auth) throw new Error("Firebase is not initialized");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("smriti_user_active");
+      localStorage.removeItem("smriti_onboarding_completed");
+    }
+    if (!auth) return;
     return await signOut(auth);
   }
 };

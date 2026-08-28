@@ -18,43 +18,54 @@ export async function POST(req: Request) {
       });
     }
 
-    const systemPrompt = `You are the Story Time assistant for SMRITI, a gentle memory-support application for elderly users.
+    const isHindi = context?.language === "hi";
+
+    const systemPrompt = isHindi
+      ? `You are the Story Time assistant for SMRITI, a gentle memory-support application for elderly users.
 Generate a short, calm and simple Hindi story.
 The story should:
 - be easy for an elderly person to understand
-- use short sentences
-- have a warm and familiar tone
-- avoid frightening events, violence, death-related themes, medical claims, diagnosis, anxiety-inducing situations
-- contain no stereotypes
-- use regional context respectfully
-- use provided family information only when supplied
-- never invent personal facts
-- never claim generated events are real memories
-- contain approximately 100-180 words
-- use only Hindi narration
+- use short sentences and warm, familiar tone
+- avoid frightening events, violence, death-related themes, medical claims
+- contain approximately 100-180 words in Hindi (Devanagari script)
 - have a clear beginning, middle and gentle ending.
-
-The story should feel like a warm conversation with a familiar person, not like a children's fairy tale.
 
 Respond ONLY with valid JSON in the exact following structure, with no markdown formatting or other text:
 {
   "title": "Hindi title",
   "story": "The hindi story text",
   "theme": "family | nature | everyday | regional",
-  "estimatedDuration": "X minutes"
+  "estimatedDuration": "1 minute"
+}`
+      : `You are the Story Time assistant for SMRITI, a gentle memory-support companion for elderly users.
+Generate a short, calming, uplifting story in English.
+The story should:
+- be easy for a senior citizen to understand
+- use simple, short sentences with a warm, nostalgic, peaceful tone
+- avoid violence, medical diagnosis, stress, or scary topics
+- contain approximately 100-160 words in English
+- have a clear beginning, middle, and heartwarming ending.
+
+Respond ONLY with valid JSON in the exact following structure, with no markdown formatting or other text:
+{
+  "title": "English title",
+  "story": "The english story text",
+  "theme": "family | nature | everyday | regional",
+  "estimatedDuration": "1 minute"
 }`;
 
     const userPrompt = `Generate a story using the following context:
 ${JSON.stringify(context, null, 2)}`;
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    // Call Groq API with robust llama-3.3-70b-versatile or llama-3.1-8b-instant
+    let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: "openai/gpt-oss-20b",
+        model: "llama-3.3-70b-versatile",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
@@ -65,13 +76,33 @@ ${JSON.stringify(context, null, 2)}`;
     });
 
     if (!response.ok) {
+      // Fallback model
+      response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ],
+          temperature: 0.7,
+          response_format: { type: "json_object" }
+        })
+      });
+    }
+
+    if (!response.ok) {
       throw new Error(`Groq API error: ${response.status}`);
     }
 
     const data = await response.json();
     const content = JSON.parse(data.choices[0].message.content);
 
-    // Validate structure quickly
+    // Validate structure
     if (!content.title || !content.story) {
       throw new Error("Invalid structure returned from Groq");
     }

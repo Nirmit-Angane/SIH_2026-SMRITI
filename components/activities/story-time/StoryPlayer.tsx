@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useLanguage } from "@/components/LanguageProvider";
 import { Play, Pause, RotateCcw, Volume2, BookOpen } from "lucide-react";
-import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import { speechService } from "@/lib/speech/speechService";
 
 interface StoryPlayerProps {
   title: string;
@@ -16,60 +16,32 @@ interface StoryPlayerProps {
 }
 
 export function StoryPlayer({ title, story, estimatedDuration, theme, onFinish }: StoryPlayerProps) {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const shouldReduceMotion = useReducedMotion();
   
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isSupported, setIsSupported] = useState(true);
 
   useEffect(() => {
-    let isCancelled = false;
-    
-    const checkSupport = async () => {
-      try {
-        await TextToSpeech.getSupportedLanguages();
-      } catch (e) {
-        if (!isCancelled) setIsSupported(false);
-      }
-    };
-    
-    checkSupport();
-    
     return () => {
-      isCancelled = true;
-      TextToSpeech.stop();
+      speechService.stop();
     };
   }, []);
 
   const speakStory = async () => {
-    if (!isSupported) return;
-    
     try {
       setIsPlaying(true);
-      await TextToSpeech.speak({
-        text: story,
-        lang: 'hi-IN',
-        rate: 0.9,
-        pitch: 1.0,
-        category: 'ambient',
-      });
-      // Speak promise resolves when finished
+      await speechService.speak(story, language);
       setIsPlaying(false);
-      setTimeout(onFinish, 1500);
+      setTimeout(onFinish, 1000);
     } catch (e) {
       console.error("TTS Error", e);
       setIsPlaying(false);
-      setIsSupported(false);
     }
   };
 
-  // Removed auto-play on mount to prevent browser autoplay policy errors.
-  // The user must press Play manually.
   const togglePlay = async () => {
-    if (!isSupported) return;
-    
     if (isPlaying) {
-      await TextToSpeech.stop();
+      await speechService.stop();
       setIsPlaying(false);
     } else {
       speakStory();
@@ -77,8 +49,7 @@ export function StoryPlayer({ title, story, estimatedDuration, theme, onFinish }
   };
 
   const replay = async () => {
-    if (!isSupported) return;
-    await TextToSpeech.stop();
+    await speechService.stop();
     speakStory();
   };
 
@@ -99,53 +70,44 @@ export function StoryPlayer({ title, story, estimatedDuration, theme, onFinish }
           </h2>
         </div>
 
-        {isSupported ? (
-          <div className="flex flex-col items-center mb-8">
-            <motion.div 
-              animate={isPlaying && !shouldReduceMotion ? { scale: [1, 1.05, 1], opacity: [0.8, 1, 0.8] } : {}}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="w-32 h-32 bg-smriti-primary/10 rounded-full flex items-center justify-center mb-8"
-            >
-              <Volume2 className={`w-16 h-16 ${isPlaying ? "text-smriti-primary" : "text-smriti-muted"}`} />
-            </motion.div>
-            
-            {isPlaying && (
-              <p className="text-smriti-primary font-medium mb-8 animate-pulse">
-                {t("games.storyTime.loading") || "कहानी सुनाई जा रही है..."}
-              </p>
-            )}
-
-            <div className="flex items-center gap-6">
-              <button 
-                onClick={replay}
-                className="w-16 h-16 rounded-full border-2 border-smriti-border bg-smriti-surface flex items-center justify-center text-smriti-text hover:bg-smriti-bg touch-target transition-colors"
-                aria-label="Replay"
-              >
-                <RotateCcw className="w-8 h-8" />
-              </button>
-              
-              <button 
-                onClick={togglePlay}
-                className="w-24 h-24 rounded-full bg-smriti-primary flex items-center justify-center text-white hover:scale-105 active:scale-95 touch-target shadow-md transition-all"
-                aria-label={isPlaying ? t("games.storyTime.pause") : t("games.storyTime.play")}
-              >
-                {isPlaying ? <Pause className="w-12 h-12" /> : <Play className="w-12 h-12 ml-2" />}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-orange-50 border border-orange-200 text-orange-800 p-4 rounded-2xl mb-8 flex items-start gap-3">
-            <Volume2 className="w-6 h-6 shrink-0 mt-0.5" />
-            <p className="font-medium text-lg">
-              {t("games.storyTime.noAudio") || "The story is ready, but audio is currently unavailable."}
+        <div className="flex flex-col items-center mb-8">
+          <motion.div 
+            animate={isPlaying && !shouldReduceMotion ? { scale: [1, 1.05, 1], opacity: [0.8, 1, 0.8] } : {}}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            className="w-32 h-32 bg-smriti-primary/10 rounded-full flex items-center justify-center mb-8"
+          >
+            <Volume2 className={`w-16 h-16 ${isPlaying ? "text-smriti-primary" : "text-smriti-muted"}`} />
+          </motion.div>
+          
+          {isPlaying && (
+            <p className="text-smriti-primary font-medium mb-8 animate-pulse text-lg">
+              {t("games.storyTime.loading") || "Narrating story..."}
             </p>
+          )}
+
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={replay}
+              className="w-16 h-16 rounded-full border-2 border-smriti-border bg-smriti-surface flex items-center justify-center text-smriti-text hover:bg-smriti-bg touch-target transition-colors"
+              aria-label="Replay"
+            >
+              <RotateCcw className="w-8 h-8" />
+            </button>
+            
+            <button 
+              onClick={togglePlay}
+              className="w-24 h-24 rounded-full bg-smriti-primary flex items-center justify-center text-white hover:scale-105 active:scale-95 touch-target shadow-md transition-all"
+              aria-label={isPlaying ? (t("games.storyTime.pause") || "Pause") : (t("games.storyTime.play") || "Play")}
+            >
+              {isPlaying ? <Pause className="w-12 h-12" /> : <Play className="w-12 h-12 ml-2" />}
+            </button>
           </div>
-        )}
+        </div>
 
         <div className="mt-8 bg-smriti-bg rounded-3xl p-6 md:p-8 border border-smriti-border/30">
           <div className="flex items-center gap-3 mb-4 text-smriti-muted">
             <BookOpen className="w-6 h-6" />
-            <span className="font-bold text-lg">{t("games.storyTime.readStory") || "कहानी पढ़ें"}</span>
+            <span className="font-bold text-lg">{t("games.storyTime.readStory") || "Read story text"}</span>
           </div>
           <p className="text-xl md:text-2xl leading-relaxed text-smriti-text">
             {story}

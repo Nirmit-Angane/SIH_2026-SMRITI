@@ -2,12 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Loader2, Volume2, AlertCircle, ArrowLeft } from "lucide-react";
-import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import { Mic, Volume2, AlertCircle, ArrowLeft, Send, Sparkles, Globe } from "lucide-react";
+import { speechService } from "@/lib/speech/speechService";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/components/LanguageProvider";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db/dexie";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 type Message = {
@@ -21,33 +21,36 @@ type AssistantState = "idle" | "listening" | "processing" | "speaking" | "error"
 export function VoiceChat() {
   const router = useRouter();
   const { profile } = useAuth();
+  const { language, setLanguage } = useLanguage();
   const elderId = 1;
   const allFamily = useLiveQuery(() => db.familyMembers.where({ elderId }).toArray(), [elderId]);
 
   const [state, setState] = useState<AssistantState>("idle");
   const [messages, setMessages] = useState<Message[]>([]);
   const [transcript, setTranscript] = useState("");
+  const [inputText, setInputText] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   
   const recognitionRef = useRef<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const hasGreeted = useRef(false);
+
+  const isHindi = language === "hi";
 
   // Auto-scroll to bottom of chat
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, transcript]);
+  }, [messages, transcript, state]);
 
+  // Initialize Speech Recognition on language change
   useEffect(() => {
-    // Initialize Speech Recognition if supported
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = 'hi-IN';
+      recognition.lang = isHindi ? 'hi-IN' : 'en-US';
 
       recognition.onstart = () => {
         setState("listening");
@@ -55,16 +58,20 @@ export function VoiceChat() {
       };
 
       recognition.onresult = (event: any) => {
-        const current = event.resultIndex;
-        const currentTranscript = event.results[current][0].transcript;
+        let currentTranscript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          currentTranscript += event.results[i][0].transcript;
+        }
         setTranscript(currentTranscript);
       };
 
       recognition.onerror = (event: any) => {
         console.error("Speech Recognition Error:", event.error);
         if (event.error !== 'no-speech') {
-          setErrorMsg("मैं सुन नहीं पाई, कृपया दोबारा कोशिश करें।");
+          setErrorMsg(isHindi ? "मैं सुन नहीं पाई, कृपया दोबारा कोशिश करें।" : "Could not hear clearly. Please try again or type below.");
           setState("error");
+        } else {
+          setState("idle");
         }
       };
 
@@ -79,17 +86,13 @@ export function VoiceChat() {
       recognitionRef.current = recognition;
     }
     
-    // Auto-greeting logic
-    if (!hasGreeted.current) {
-      hasGreeted.current = true;
-      // We will trigger a silent init process that just gets Groq to say hello
-      initiateGreeting();
-    }
+    // Greet in the active language
+    initiateGreeting(language);
     
     return () => {
-      TextToSpeech.stop();
+      speechService.stop();
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [language, isHindi]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (recognitionRef.current) {
@@ -97,20 +100,21 @@ export function VoiceChat() {
     }
   }, [transcript]);
 
-  const initiateGreeting = async () => {
+  const initiateGreeting = async (lang: string) => {
     setState("processing");
     try {
+      const isTargetHindi = lang === "hi";
       const context = {
         patientName: profile?.name,
         region: profile?.region,
+        language: isTargetHindi ? "hi" : "en",
       };
 
       const res = await fetch("/api/assistant/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Empty transcript with history triggers the greeting from system
         body: JSON.stringify({ 
-          transcript: "Hello SMRITI, please greet me warmly and ask how I am.", 
+          transcript: isTargetHindi ? "नमस्ते SMRITI, कृपया मेरा स्वागत करें।" : "Hello SMRITI, please greet me warmly and ask how I am.", 
           context,
           history: [] 
         })
@@ -123,25 +127,28 @@ export function VoiceChat() {
       setMessages([botMsg]);
       
       setState("speaking");
-      await TextToSpeech.speak({
-        text: data.response,
-        lang: 'hi-IN',
-        rate: 0.9,
-      });
-
+      await speechService.speak(data.response, lang);
       setState("idle");
     } catch (e) {
       console.error(e);
-      // Fallback greeting if API fails immediately
-      const fb = "नमस्ते, आज आप कैसा महसूस कर रहे हैं?";
+      const isTargetHindi = lang === "hi";
+      const fb = isTargetHindi ? "नमस्ते! आज आप कैसा महसूस कर रहे हैं?" : "Hello! How are you feeling today?";
       setMessages([{ id: Date.now().toString(), role: "assistant", content: fb }]);
       setState("idle");
     }
   };
 
+  const handleLanguageChange = async (newLang: string) => {
+    if (newLang === language) return;
+    await speechService.stop();
+    setTranscript("");
+    setInputText("");
+    await setLanguage(newLang);
+  };
+
   const toggleListening = () => {
     if (state === "speaking") {
-      TextToSpeech.stop();
+      speechService.stop();
       setState("idle");
       return;
     }
@@ -150,20 +157,19 @@ export function VoiceChat() {
       recognitionRef.current?.stop();
     } else {
       if (!recognitionRef.current) {
-        setErrorMsg("Browser doesn't support Speech Recognition. Please use Chrome.");
+        setErrorMsg(isHindi ? "माइक का समर्थन उपलब्ध नहीं है, कृपया टाइप करें।" : "Speech recognition is not available. Please type your message below.");
         setState("error");
         return;
       }
       
       setErrorMsg("");
-      TextToSpeech.stop();
+      speechService.stop();
       
       try {
         recognitionRef.current.start();
       } catch (e: any) {
         console.error("Failed to start speech recognition:", e);
-        console.log("Simulating voice input for testing...");
-        processAudio("मुझे मेरे परिवार की याद आ रही है।");
+        processAudio(isHindi ? "नमस्ते! आपका दिन कैसा है?" : "Hello! How is your day going?");
       }
     }
   };
@@ -174,11 +180,11 @@ export function VoiceChat() {
       return;
     }
 
-    // Add user message to UI
     const userMsg: Message = { id: Date.now().toString(), role: "user", content: text };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setTranscript("");
+    setInputText("");
 
     setState("processing");
     
@@ -186,11 +192,11 @@ export function VoiceChat() {
       const context = {
         patientName: profile?.name,
         region: profile?.region,
+        language: isHindi ? "hi" : "en",
         familyMembers: allFamily?.map(f => ({ name: f.name, relation: f.relationship })) || [],
       };
 
-      // Send recent history to maintain context
-      const historyToSend = newMessages.slice(-5).map(m => ({ role: m.role, content: m.content }));
+      const historyToSend = newMessages.slice(-6).map(m => ({ role: m.role, content: m.content }));
 
       const res = await fetch("/api/assistant/chat", {
         method: "POST",
@@ -205,34 +211,55 @@ export function VoiceChat() {
       setMessages(prev => [...prev, botMsg]);
       
       setState("speaking");
-      await TextToSpeech.speak({
-        text: data.response,
-        lang: 'hi-IN',
-        rate: 0.9,
-      });
-
+      await speechService.speak(data.response, language);
       setState("idle");
 
     } catch (e) {
       console.error(e);
-      setErrorMsg("कुछ गलत हो गया, कृपया फिर से प्रयास करें।");
+      setErrorMsg(isHindi ? "कुछ गलत हो गया, कृपया फिर से प्रयास करें।" : "Something went wrong, please try again.");
       setState("error");
     }
   };
 
+  const quickPrompts = isHindi
+    ? ["नमस्ते SMRITI", "आज का मौसम कैसा है?", "मुझे शांति महसूस करनी है"]
+    : ["Hello SMRITI", "How are you today?", "Tell me about my family"];
+
   return (
     <div className="flex flex-col h-screen bg-smriti-bg">
       {/* Header */}
-      <header className="flex items-center p-4 md:p-6 bg-white border-b border-smriti-border sticky top-0 z-10 shadow-sm shrink-0">
+      <header className="flex items-center justify-between p-4 md:p-6 bg-white border-b border-smriti-border sticky top-0 z-10 shadow-sm shrink-0">
         <button 
-          onClick={() => { TextToSpeech.stop(); router.push('/dashboard'); }}
+          onClick={() => { speechService.stop(); router.push('/dashboard'); }}
           className="w-12 h-12 rounded-full flex items-center justify-center hover:bg-smriti-primary/10 text-smriti-text transition-colors touch-target"
+          aria-label="Back to dashboard"
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <div className="flex-1 text-center pr-12">
+
+        <div className="text-center">
           <h1 className="text-xl md:text-2xl font-extrabold text-smriti-text">SMRITI</h1>
-          <p className="text-sm text-smriti-primary font-medium">Your Digital Companion</p>
+          <p className="text-xs md:text-sm text-smriti-primary font-medium">{isHindi ? "आपकी डिजिटल साथी" : "Your Digital Companion"}</p>
+        </div>
+
+        {/* Dynamic Language Switcher in Header */}
+        <div className="flex items-center gap-1 bg-smriti-bg p-1 rounded-full border border-smriti-border">
+          <button
+            onClick={() => handleLanguageChange("en")}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+              !isHindi ? "bg-smriti-primary text-white shadow-xs" : "text-smriti-muted hover:text-smriti-text"
+            }`}
+          >
+            EN
+          </button>
+          <button
+            onClick={() => handleLanguageChange("hi")}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+              isHindi ? "bg-smriti-primary text-white shadow-xs" : "text-smriti-muted hover:text-smriti-text"
+            }`}
+          >
+            हिन्दी
+          </button>
         </div>
       </header>
 
@@ -247,7 +274,6 @@ export function VoiceChat() {
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} w-full group`}
             >
               <div className={`flex items-end gap-3 max-w-[85%] md:max-w-[70%] ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
-                
                 {/* Avatar */}
                 <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-sm
                   ${msg.role === "user" ? "bg-smriti-primary/20 text-smriti-primary" : "bg-gradient-to-br from-smriti-primary to-orange-400 text-white"}`}>
@@ -274,7 +300,7 @@ export function VoiceChat() {
             </motion.div>
           ))}
           
-          {/* Active Transcript Bubble (User typing) */}
+          {/* Active Transcript Bubble */}
           {transcript && state === "listening" && (
             <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -295,7 +321,7 @@ export function VoiceChat() {
             </motion.div>
           )}
 
-          {/* Processing Indicator (Typing bubble) */}
+          {/* Processing Indicator */}
           {state === "processing" && (
             <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -319,49 +345,79 @@ export function VoiceChat() {
         </AnimatePresence>
       </div>
 
-      {/* Control Area (Persistent Bottom) */}
-      <div className="bg-white border-t border-smriti-border p-6 md:p-8 flex flex-col items-center justify-center pb-safe shrink-0">
-        
+      {/* Suggested Quick Prompts */}
+      <div className="px-4 md:px-8 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar bg-smriti-bg">
+        <Sparkles className="w-4 h-4 text-smriti-primary shrink-0" />
+        {quickPrompts.map((prompt, i) => (
+          <button
+            key={i}
+            onClick={() => processAudio(prompt)}
+            disabled={state === "processing"}
+            className="px-3.5 py-1.5 rounded-full bg-white border border-smriti-border text-xs md:text-sm font-semibold text-smriti-text hover:bg-smriti-primary hover:text-white transition-all shrink-0 shadow-2xs"
+          >
+            {prompt}
+          </button>
+        ))}
+      </div>
+
+      {/* Control Area */}
+      <div className="bg-white border-t border-smriti-border p-4 md:p-6 flex flex-col items-center justify-center pb-safe shrink-0 gap-4">
         {state === "error" && (
-          <p className="text-smriti-error font-medium flex items-center gap-2 mb-4">
-            <AlertCircle className="w-5 h-5" />
+          <p className="text-smriti-error font-medium flex items-center gap-2 text-sm md:text-base">
+            <AlertCircle className="w-5 h-5 shrink-0" />
             {errorMsg}
           </p>
         )}
 
-        <button 
-          onClick={toggleListening}
-          disabled={state === "processing"}
-          className={`flex items-center justify-center w-24 h-24 rounded-full transition-all shadow-lg touch-target
-            ${state === "listening" ? "bg-smriti-error text-white animate-pulse" : 
-              state === "speaking" ? "bg-smriti-surface border-4 border-smriti-primary text-smriti-primary" : 
-              "bg-smriti-primary text-white hover:scale-105 active:scale-95"}`}
+        {/* Text Input Option */}
+        <form 
+          onSubmit={(e) => { e.preventDefault(); if (inputText.trim()) processAudio(inputText); }}
+          className="flex items-center gap-2 w-full max-w-xl"
         >
-          {state === "listening" && (
-            <div className="w-8 h-8 rounded-sm bg-white" />
-          )}
-          {state === "speaking" && (
-             <Volume2 className="w-10 h-10 animate-pulse" />
-          )}
-          {(state === "idle" || state === "error" || state === "processing") && (
-            <Mic className="w-10 h-10" />
-          )}
-        </button>
-
-        <p className="mt-4 text-lg font-bold text-smriti-text">
-          {state === "listening" ? "Tap to Stop" : 
-           state === "speaking" ? "Tap to Interrupt" : 
-           "Tap to Speak"}
-        </p>
-        
-        {state === "idle" && (
-          <button 
-            onClick={() => processAudio("मुझे मेरे परिवार की याद आ रही है।")}
-            className="mt-4 text-sm text-smriti-muted hover:text-smriti-primary underline opacity-50"
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder={isHindi ? "या यहाँ लिखें..." : "Or type a message here..."}
+            disabled={state === "processing"}
+            className="flex-1 bg-smriti-bg border border-smriti-border rounded-full px-5 py-3 text-base md:text-lg focus:outline-none focus:border-smriti-primary shadow-inner"
+          />
+          <button
+            type="submit"
+            disabled={!inputText.trim() || state === "processing"}
+            className="w-12 h-12 rounded-full bg-smriti-primary text-white flex items-center justify-center hover:scale-105 active:scale-95 disabled:opacity-50 transition-all shadow-sm shrink-0"
           >
-            Simulate Voice
+            <Send className="w-5 h-5" />
           </button>
-        )}
+        </form>
+
+        <div className="flex flex-col items-center">
+          <button 
+            onClick={toggleListening}
+            disabled={state === "processing"}
+            className={`flex items-center justify-center w-20 h-20 md:w-22 md:h-22 rounded-full transition-all shadow-lg touch-target
+              ${state === "listening" ? "bg-smriti-error text-white animate-pulse" : 
+                state === "speaking" ? "bg-smriti-surface border-4 border-smriti-primary text-smriti-primary" : 
+                "bg-smriti-primary text-white hover:scale-105 active:scale-95"}`}
+            aria-label="Voice input button"
+          >
+            {state === "listening" && (
+              <div className="w-7 h-7 rounded-sm bg-white" />
+            )}
+            {state === "speaking" && (
+              <Volume2 className="w-9 h-9 animate-pulse" />
+            )}
+            {(state === "idle" || state === "error" || state === "processing") && (
+              <Mic className="w-9 h-9" />
+            )}
+          </button>
+
+          <p className="mt-2 text-base md:text-lg font-bold text-smriti-text">
+            {state === "listening" ? (isHindi ? "रोकने के लिए दबाएं" : "Listening... Tap to Stop") : 
+             state === "speaking" ? (isHindi ? "रोकने के लिए दबाएं" : "Speaking... Tap to Stop") : 
+             (isHindi ? "बोलने के लिए दबाएं" : "Tap to Speak")}
+          </p>
+        </div>
       </div>
     </div>
   );

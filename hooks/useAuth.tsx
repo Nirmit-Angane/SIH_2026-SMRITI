@@ -2,7 +2,7 @@
 
 import { useState, useEffect, createContext, useContext } from 'react';
 import { onAuthStateChanged, User, signOut as firebaseSignOut } from 'firebase/auth';
-import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
 
@@ -54,32 +54,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(firebaseUser);
       
       if (firebaseUser) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("smriti_user_active", "true");
+        }
+
         // Listen to user profile from Firestore in real-time
         const docRef = doc(db, "users", firebaseUser.uid);
         unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data() as PatientProfile;
-            setProfile(data);
-            if (data.onboardingCompleted) {
+            const fullProfile: PatientProfile = {
+              name: data.name || firebaseUser.displayName || "User",
+              region: data.region || "Assam",
+              supportLevel: data.supportLevel || "gentle",
+              language: data.language || "en",
+              usageContext: data.usageContext || "home",
+              onboardingCompleted: true,
+              accessibility: data.accessibility || {
+                textSize: "standard",
+                highContrast: false,
+                reducedMotion: false,
+                voiceGuidance: true
+              },
+              preferences: data.preferences
+            };
+            setProfile(fullProfile);
+            if (typeof window !== "undefined") {
               localStorage.setItem("smriti_onboarding_completed", "true");
             }
           } else {
-            // Check localStorage as a fallback in case they completed it but we can't read it
-            if (localStorage.getItem("smriti_onboarding_completed") === "true") {
-              setProfile({ onboardingCompleted: true } as PatientProfile);
-            } else {
-              setProfile(null);
+            // Document doesn't exist yet, fallback
+            const defaultProf: PatientProfile = {
+              name: firebaseUser.displayName || "User",
+              region: "Assam",
+              supportLevel: "gentle",
+              language: "en",
+              usageContext: "home",
+              onboardingCompleted: true
+            };
+            setProfile(defaultProf);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("smriti_onboarding_completed", "true");
             }
           }
           setLoading(false);
         }, (error) => {
           console.error("Error fetching user profile snapshot:", error);
-          // Fallback to localStorage if rules are broken!
-          if (localStorage.getItem("smriti_onboarding_completed") === "true") {
-            setProfile({ onboardingCompleted: true } as PatientProfile);
-          } else {
-            setProfile(null);
-          }
+          const defaultProf: PatientProfile = {
+            name: firebaseUser.displayName || "User",
+            region: "Assam",
+            supportLevel: "gentle",
+            language: "en",
+            usageContext: "home",
+            onboardingCompleted: true
+          };
+          setProfile(defaultProf);
           setLoading(false);
         });
       } else {
@@ -97,6 +126,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("smriti_user_active");
+        localStorage.removeItem("smriti_onboarding_completed");
+      }
       await firebaseSignOut(auth);
       router.push('/login');
     } catch (error) {
@@ -109,7 +142,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const docRef = doc(db, "users", user.uid);
       await updateDoc(docRef, updates);
-      // The local profile state will automatically update via onSnapshot
     } catch (error) {
       console.error("Error updating profile:", error);
       throw error;

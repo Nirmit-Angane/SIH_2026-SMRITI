@@ -6,6 +6,7 @@ import { HomeGreeting } from "@/components/home/HomeGreeting";
 import { TodaysGentleMoment } from "@/components/home/TodaysGentleMoment";
 import { DailyCheckIn } from "@/components/home/DailyCheckIn";
 import { DailyTimeline } from "@/components/home/DailyTimeline";
+import { HydrationCard } from "@/components/home/HydrationCard";
 import { FamiliarFace } from "@/components/home/FamiliarFace";
 import dynamic from 'next/dynamic';
 
@@ -21,6 +22,7 @@ export default function DashboardPage() {
           <HomeGreeting />
           <TodaysGentleMoment />
           <DailyCheckIn />
+          <HydrationCard />
           <DailyTimeline />
           <FamiliarFace />
           <TalkToSmritiHome />

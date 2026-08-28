@@ -22,7 +22,7 @@ interface StoryData {
 
 export function StoryActivity() {
   const { profile } = useAuth();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const elderId = 1; // MVP standard
 
   const allFamily = useLiveQuery(() => db.familyMembers.where({ elderId }).toArray(), [elderId]);
@@ -56,7 +56,7 @@ export function StoryActivity() {
       const context = {
         patientName: profile.name,
         region: profile.region,
-        language: "hi", // Forcing Hindi per requirements
+        language: language === "hi" ? "hi" : "en",
         familyMembers: allFamily?.map(f => ({ name: f.name, relation: f.relationship })) || [],
         memories: allMemories?.map(m => ({ title: m.title, year: m.year })) || [],
       };
