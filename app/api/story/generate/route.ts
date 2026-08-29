@@ -1,123 +1,155 @@
 import { NextResponse } from 'next/server';
+import { STORY_LANGUAGES } from '@/lib/constants/languages';
+
+interface MemoryItem {
+  title: string;
+  year?: string;
+  description?: string;
+}
+
+interface FamilyItem {
+  name: string;
+  relation: string;
+}
+
+interface StoryContext {
+  patientName?: string;
+  region?: string;
+  language?: string;
+  targetLangId?: string;
+  selectedMemory?: MemoryItem;
+  familyMembers?: FamilyItem[];
+  memories?: MemoryItem[];
+}
+
+function generateDynamicFallback(context: StoryContext, targetLangName: string) {
+  const memory = context.selectedMemory || (context.memories && context.memories.length > 0 ? context.memories[0] : null);
+  const family = context.familyMembers || [];
+  const familyMention = family.length > 0 ? family.map(f => `${f.name} (${f.relation})`).join(", ") : "";
+
+  if (memory) {
+    return {
+      title: `${memory.title} ${memory.year ? `(${memory.year})` : ""}`,
+      story: `Back in ${memory.year || "that memorable year"}, ${memory.title} was a day to remember. ${memory.description || "Everyone gathered together for the occasion."} ${familyMention ? `Joined by ${familyMention}, the day unfolded with lively conversations and shared moments.` : "Every detail of that day remains clear and cherished."}`.trim(),
+      theme: "family",
+      estimatedDuration: "1 minute",
+      language: targetLangName
+    };
+  }
+
+  return {
+    title: "A Golden Afternoon Remembered",
+    story: "Gentle sunlight filtered across the courtyard as a soft breeze rustled through the leaves. Familiar voices echoed with the comforting rhythm of home, tea in hand, and quiet stories that connect the past to the present.",
+    theme: "nature",
+    estimatedDuration: "1 minute",
+    language: targetLangName
+  };
+}
+
+const GROQ_MODELS = [
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b",
+  "qwen/qwen3.8-27b",
+  "qwen/qwen3.6-27b"
+];
 
 export async function POST(req: Request) {
-  let isHindi = false;
+  let contextData: StoryContext = {};
+  
   try {
     const { context } = await req.json();
-    isHindi = context?.language === "hi";
+    contextData = context || {};
     const apiKey = process.env.GROQ_API_KEY;
 
+    // Resolve target language from 10 supported languages
+    const langKey = (contextData.targetLangId || contextData.language || "en").toLowerCase();
+    const targetLangObj = STORY_LANGUAGES.find(l => 
+      l.id === langKey || 
+      l.name.toLowerCase() === langKey ||
+      l.nativeName.toLowerCase().includes(langKey)
+    ) || STORY_LANGUAGES[3]; // Default English
+
     if (!apiKey || apiKey.trim() === '' || apiKey.includes('your_groq_api_key') || apiKey === 'mock_groq_key') {
-      return NextResponse.json({
-        title: isHindi ? "सुखद शाम की यादें" : "Memories of a Pleasant Evening",
-        story: isHindi 
-          ? "एक दिन परिवार साथ बैठा और पुरानी तस्वीरों को देखकर बातें करने लगा। वह एक बहुत ही शांत और सुंदर शाम थी। सभी के चेहरों पर खुशी और मुस्कान थी।"
-          : "One peaceful evening, the family gathered in the garden with warm cups of tea. They looked through cherished photographs and shared fond childhood memories. The gentle breeze and happy laughter filled everyone with comfort and warmth.",
-        theme: "family",
-        estimatedDuration: "1 minute"
-      });
+      return NextResponse.json(generateDynamicFallback(contextData, targetLangObj.name));
     }
 
-    const systemPrompt = isHindi
-      ? `You are the Story Time assistant for SMRITI, a gentle memory-support application for elderly users.
-Generate a short, calm and simple Hindi story.
-The story should:
-- be easy for an elderly person to understand
-- use short sentences and warm, familiar tone
-- avoid frightening events, violence, death-related themes, medical claims
-- contain approximately 100-180 words in Hindi (Devanagari script)
-- have a clear beginning, middle and gentle ending.
+    const memoryFocus = contextData.selectedMemory 
+      ? `PRIMARY MEMORY TO BASE THE STORY ON:
+Title: ${contextData.selectedMemory.title}
+Year: ${contextData.selectedMemory.year || "Recent"}
+Description / Details: ${contextData.selectedMemory.description || "A memorable life experience"}
+Weave these exact details, actions, and settings naturally into vivid storytelling narrative in ${targetLangObj.name}.`
+      : (contextData.memories && contextData.memories.length > 0)
+      ? `USER'S REAL MEMORIES:
+${JSON.stringify(contextData.memories, null, 2)}
+Please pick one of these real memories and tell its authentic story vividly in ${targetLangObj.name}.`
+      : `No specific memories provided. Create a natural, comforting cultural story in ${targetLangObj.name}.`;
 
-Respond ONLY with valid JSON in the exact following structure, with no markdown formatting or other text:
-{
-  "title": "Hindi title",
-  "story": "The hindi story text in Devanagari script",
-  "theme": "family | nature | everyday | regional",
-  "estimatedDuration": "1 minute"
-}`
-      : `You are the Story Time assistant for SMRITI, a gentle memory-support companion for elderly users.
-Generate a short, calming, uplifting story in ENGLISH.
-The story should:
-- be 100% in English language. Do NOT output any Hindi words or Devanagari script.
-- be easy for a senior citizen to understand
-- use simple, short sentences with a warm, nostalgic, peaceful tone
-- avoid violence, medical diagnosis, stress, or scary topics
-- contain approximately 100-160 words in English
-- have a clear beginning, middle, and heartwarming ending.
+    const systemPrompt = `You are an empathetic, vivid storyteller for SMRITI, a cognitive care application for Indian elders.
+Generate a captivating, natural, and nostalgic story in ${targetLangObj.name} (${targetLangObj.script}).
+CRITICAL INSTRUCTIONS:
+- You MUST write the story title and prose 100% in ${targetLangObj.name} (${targetLangObj.script}).
+- If ${targetLangObj.name} uses Assamese, Bengali, Devanagari (Hindi/Nepali), or Manipuri script, write in the authentic native script.
+- If ${targetLangObj.name} uses Latin script (Khasi, Mizo, Nagamese, Kokborok, English), write in clean standard Latin script.
+- Do NOT use repetitive robotic clichés. Instead, vividly describe the real people, actions, atmosphere, and sensory details from the user's memory.
+- Keep the tone warm, comforting, and clear (90 to 140 words).
+- Avoid medical terms, sadness, or stress.
 
-Respond ONLY with valid JSON in the exact following structure, with no markdown formatting or other text:
+You must respond ONLY in valid JSON format matching this structure:
 {
-  "title": "English title",
-  "story": "The english story text",
+  "title": "Story title in ${targetLangObj.name}",
+  "story": "Story narrative in ${targetLangObj.name}",
   "theme": "family | nature | everyday | regional",
-  "estimatedDuration": "1 minute"
+  "estimatedDuration": "1 minute",
+  "language": "${targetLangObj.name}",
+  "langId": "${targetLangObj.id}"
 }`;
 
-    const userPrompt = `[LANGUAGE: ${isHindi ? "Hindi (Devanagari)" : "English"}] Generate a story using context:
-${JSON.stringify(context, null, 2)}`;
+    const userPrompt = `Target Language: ${targetLangObj.name} (${targetLangObj.script})
+Patient Name: ${contextData.patientName || "Elder"}
+Region: ${contextData.region || "Northeast India"}
+Family Members: ${JSON.stringify(contextData.familyMembers || [])}
+${memoryFocus}`;
 
-    let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ],
-        temperature: 0.7,
-        response_format: { type: "json_object" }
-      })
-    });
+    for (const model of GROQ_MODELS) {
+      try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt }
+            ],
+            temperature: 0.7,
+            response_format: { type: "json_object" }
+          })
+        });
 
-    if (!response.ok) {
-      response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt }
-          ],
-          temperature: 0.7,
-          response_format: { type: "json_object" }
-        })
-      });
-    }
-
-    if (response.ok) {
-      const data = await response.json();
-      const content = JSON.parse(data.choices[0].message.content);
-      if (content.title && content.story) {
-        return NextResponse.json(content);
+        if (response.ok) {
+          const data = await response.json();
+          const content = JSON.parse(data.choices[0].message.content);
+          if (content.title && content.story) {
+            return NextResponse.json({
+              ...content,
+              language: targetLangObj.name,
+              langId: targetLangObj.id
+            });
+          }
+        }
+      } catch (err) {
+        console.warn(`Groq model ${model} failed, trying next...`, err);
       }
     }
 
-    return NextResponse.json({
-      title: isHindi ? "सुखद शाम की यादें" : "Memories of a Pleasant Evening",
-      story: isHindi 
-        ? "एक दिन परिवार साथ बैठा और पुरानी तस्वीरों को देखकर बातें करने लगा। वह एक बहुत ही शांत और सुंदर शाम थी। सभी के चेहरों पर खुशी और मुस्कान थी।"
-        : "One peaceful evening, the family gathered in the garden with warm cups of tea. They looked through cherished photographs and shared fond childhood memories. The gentle breeze and happy laughter filled everyone with comfort and warmth.",
-      theme: "family",
-      estimatedDuration: "1 minute"
-    });
+    return NextResponse.json(generateDynamicFallback(contextData, targetLangObj.name));
 
   } catch (error) {
     console.error("Story Generation Error:", error);
-    return NextResponse.json({
-      title: isHindi ? "सुखद शाम की यादें" : "Memories of a Pleasant Evening",
-      story: isHindi 
-        ? "एक दिन परिवार साथ बैठा और पुरानी तस्वीरों को देखकर बातें करने लगा। वह एक बहुत ही शांत और सुंदर शाम थी।"
-        : "One peaceful evening, the family gathered with warm tea and looked through cherished photographs.",
-      theme: "family",
-      estimatedDuration: "1 minute"
-    });
+    return NextResponse.json(generateDynamicFallback(contextData, "English"));
   }
 }

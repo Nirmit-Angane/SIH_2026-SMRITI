@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { LayoutGrid } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 export interface CardData {
   id: string;
@@ -23,7 +23,7 @@ export function MemoryCard({ card, isFlipped, isMatched, onClick, disabled }: Me
 
   return (
     <div 
-      className="relative w-full aspect-square md:aspect-[3/4] cursor-pointer touch-target group perspective-1000"
+      className="relative w-full aspect-[3/4] cursor-pointer group perspective-1000 select-none"
       onClick={() => {
         if (!disabled && !isFlipped && !isMatched) {
           onClick();
@@ -34,29 +34,31 @@ export function MemoryCard({ card, isFlipped, isMatched, onClick, disabled }: Me
         className="w-full h-full relative preserve-3d"
         animate={{ 
           rotateY: isFlipped || isMatched ? 180 : 0,
-          scale: isMatched ? (reduceMotion ? 1 : 1.02) : 1
+          scale: isMatched ? 1.02 : 1
         }}
         transition={{ 
-          duration: reduceMotion ? 0 : 0.5,
+          duration: reduceMotion ? 0 : 0.4,
           ease: "easeInOut"
         }}
         style={{ transformStyle: "preserve-3d" }}
       >
-        {/* Front of card (hidden when flipped) */}
+        {/* Front of card (Yellow Neobrutalist card back with 4px border & 8px shadow) */}
         <div 
-          className={`absolute inset-0 backface-hidden w-full h-full rounded-2xl md:rounded-[32px] 
-            border-2 md:border-4 border-smriti-border bg-smriti-surface
-            flex items-center justify-center shadow-sm group-hover:border-smriti-primary/50 transition-colors
+          className={`absolute inset-0 backface-hidden w-full h-full bg-[#ffe083] neo-border neo-shadow flex flex-col items-center justify-center p-4 transition-all group-hover:translate-x-[2px] group-hover:translate-y-[2px] group-hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
             ${isFlipped || isMatched ? 'pointer-events-none' : ''}`}
         >
-          <LayoutGrid className="w-10 h-10 md:w-16 md:h-16 text-smriti-primary/30" />
+          <div className="w-12 h-12 rounded-full bg-white neo-border flex items-center justify-center text-[#735c00] mb-2">
+            <Sparkles className="w-6 h-6 stroke-[2.5]" />
+          </div>
+          <span className="font-headline-lg text-sm sm:text-base uppercase font-black tracking-wider text-[#231b00]">
+            Smriti
+          </span>
         </div>
 
-        {/* Back of card (the actual image, visible when flipped) */}
+        {/* Back of card (Image reveal when flipped) */}
         <div 
-          className={`absolute inset-0 backface-hidden w-full h-full rounded-2xl md:rounded-[32px] 
-            overflow-hidden shadow-md
-            ${isMatched ? 'border-4 border-smriti-success ring-4 ring-smriti-success/20' : 'border-2 md:border-4 border-smriti-primary/20'}`}
+          className={`absolute inset-0 backface-hidden w-full h-full bg-white neo-border overflow-hidden
+            ${isMatched ? 'neo-shadow border-[#006e2f] ring-4 ring-[#6bff8f]' : 'neo-shadow'}`}
           style={{ transform: "rotateY(180deg)", backfaceVisibility: "hidden" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -67,20 +69,12 @@ export function MemoryCard({ card, isFlipped, isMatched, onClick, disabled }: Me
             draggable={false}
           />
           
-          {/* Subtle matched overlay */}
-          {isMatched && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="absolute inset-0 bg-smriti-success/10 flex items-end justify-center pb-4"
-            >
-              {card.caption && (
-                <span className="bg-black/60 text-white px-3 py-1.5 rounded-full text-xs md:text-sm font-medium backdrop-blur-sm">
-                  {card.caption}
-                </span>
-              )}
-            </motion.div>
+          {card.caption && (
+            <div className="absolute bottom-0 inset-x-0 bg-[#1a1c1c]/90 text-white p-2 text-center">
+              <span className="font-label-caps text-xs font-bold uppercase truncate block">
+                {card.caption}
+              </span>
+            </div>
           )}
         </div>
       </motion.div>

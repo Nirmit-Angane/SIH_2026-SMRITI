@@ -1,8 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useLanguage } from "@/components/LanguageProvider";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 import Link from "next/link";
 
 interface ActivityIntroProps {
@@ -13,37 +12,39 @@ export function ActivityIntro({ onBegin }: ActivityIntroProps) {
   const { t } = useLanguage();
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="flex flex-col items-center justify-center min-h-[60vh] w-full max-w-2xl mx-auto px-4 text-center"
-    >
-      <div className="bg-smriti-surface border border-smriti-border rounded-[32px] p-8 md:p-12 shadow-sm w-full relative">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] w-full max-w-2xl mx-auto py-4">
+      
+      {/* Top Navigation Back Button */}
+      <div className="w-full flex items-center justify-start mb-6">
         <Link 
           href="/activities"
-          className="absolute top-6 left-6 text-smriti-muted hover:text-smriti-text transition-colors touch-target flex items-center justify-center p-2 rounded-full hover:bg-smriti-bg"
+          className="inline-flex items-center gap-2 bg-white neo-border px-4 py-2 font-label-caps text-xs uppercase font-bold text-[#1a1c1c] hover:bg-[#f4f4f3] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
         >
-          <ArrowLeft className="w-6 h-6" />
+          <ArrowLeft className="w-4 h-4 stroke-[3]" /> Back to Activities
         </Link>
+      </div>
+
+      <div className="bg-[#dbe1ff] neo-border neo-shadow p-8 sm:p-12 w-full text-center">
+        <div className="w-20 h-20 bg-white neo-border flex items-center justify-center mb-6 mx-auto">
+          <Users className="w-10 h-10 text-[#004ac6]" />
+        </div>
         
-        <div className="mt-8 mb-10">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-smriti-text mb-4">
-            {t("games.familyRecognition.introTitle") || "Let's remember familiar faces."}
+        <div className="mb-8">
+          <h1 className="font-display-lg text-3xl sm:text-4xl font-black uppercase text-[#00174b] mb-3 tracking-tight">
+            {t("games.familyRecognition.introTitle") || "Familiar Faces Recognition"}
           </h1>
-          <p className="text-xl md:text-2xl text-smriti-muted font-medium">
+          <p className="font-body-md text-base sm:text-lg text-[#003ea8]">
             {t("games.familyRecognition.introDesc") || "Take your time. Look at the faces and choose the person you recognize."}
           </p>
         </div>
 
         <button 
           onClick={onBegin}
-          className="bg-smriti-primary text-white px-10 py-4 rounded-full font-bold text-xl hover:scale-105 active:scale-95 transition-all shadow-md touch-target w-full md:w-auto"
+          className="bg-[#2563eb] text-white px-10 py-4 neo-border shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none font-headline-lg text-xl uppercase font-black tracking-wider transition-all w-full sm:w-auto cursor-pointer"
         >
-          {t("games.familyRecognition.begin") || "Begin"}
+          {t("games.familyRecognition.begin") || "Start Activity"}
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 }

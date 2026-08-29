@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react";
-import { authService } from "@/services/authService";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -25,13 +23,11 @@ export function ForgotPasswordForm() {
     setLoading(true);
 
     try {
-      // MOCK RESET PASSWORD FOR UI PREVIEW (Firebase bypassed)
       await new Promise(resolve => setTimeout(resolve, 1000));
       setSuccess(true);
     } catch (err: any) {
       console.error(err);
       if (err.code === "auth/user-not-found") {
-        // For security, it's often better to not reveal if a user exists, but we'll keep it friendly here.
         setError("We couldn't find an account with that email.");
       } else {
         setError("Something went wrong. Please try again later.");
@@ -43,62 +39,48 @@ export function ForgotPasswordForm() {
 
   if (success) {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full text-center"
-      >
-        <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle2 className="w-10 h-10 text-smriti-success" />
+      <div className="w-full text-center">
+        <div className="w-20 h-20 bg-[#6bff8f] neo-border flex items-center justify-center mx-auto mb-6">
+          <CheckCircle2 className="w-10 h-10 text-[#006e2f]" />
         </div>
-        <h2 className="text-3xl md:text-4xl font-extrabold text-smriti-text mb-4">Check your email</h2>
-        <p className="text-lg text-smriti-muted mb-8 leading-relaxed">
+        <h2 className="font-display-lg text-3xl sm:text-4xl font-black uppercase text-[#1a1c1c] mb-3">Check Your Email</h2>
+        <p className="font-body-md text-base text-[#434655] mb-8 leading-relaxed">
           We've sent instructions to reset your password to <strong>{email}</strong>.
         </p>
         <Link 
           href="/login"
-          className="inline-flex w-full h-14 bg-smriti-primary text-white rounded-xl text-lg font-bold hover:bg-smriti-primary transition-all items-center justify-center touch-target"
+          className="inline-flex w-full h-14 bg-[#2563eb] text-white neo-border shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none font-headline-lg text-xl uppercase font-black tracking-wider items-center justify-center cursor-pointer transition-all"
         >
           Back to Login
         </Link>
-      </motion.div>
+      </div>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="w-full"
-    >
-      <div className="mb-8">
-        <Link href="/login" className="inline-flex items-center gap-2 text-smriti-muted hover:text-smriti-primary transition-colors font-medium mb-6">
-          <ArrowLeft className="w-5 h-5" /> Back
-        </Link>
-        <h2 className="text-3xl md:text-4xl font-extrabold text-smriti-text mb-3">Forgot your password?</h2>
-        <p className="text-lg text-smriti-muted">No worries. Enter your email and we'll help you get back in.</p>
+    <div className="w-full">
+      <Link 
+        href="/login" 
+        className="inline-flex items-center gap-2 bg-white neo-border px-4 py-2 font-label-caps text-xs uppercase font-bold text-[#1a1c1c] hover:bg-[#f4f4f3] mb-6 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+      >
+        <ArrowLeft className="w-4 h-4 stroke-[3]" /> Back to Login
+      </Link>
+
+      <div className="mb-6 pb-4 border-b-2 border-[#1a1c1c]">
+        <h2 className="font-display-lg text-3xl sm:text-4xl font-black uppercase text-[#1a1c1c] tracking-tight mb-2">Forgot Password</h2>
+        <p className="font-body-md text-base text-[#434655]">Enter your email and we'll help you get back into your account.</p>
       </div>
 
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-            animate={{ opacity: 1, height: "auto", marginBottom: 24 }}
-            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="bg-red-50 border border-smriti-error/20 p-4 rounded-xl flex items-start gap-3">
-              <AlertCircle className="w-6 h-6 text-smriti-error shrink-0 mt-0.5" />
-              <p className="text-smriti-error font-medium text-[16px] leading-snug">{error}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {error && (
+        <div className="bg-[#ffdad6] neo-border text-[#93000a] p-4 mb-6 flex items-start gap-3">
+          <AlertCircle className="w-6 h-6 text-[#ba1a1a] shrink-0 mt-0.5" />
+          <p className="font-bold text-sm leading-snug">{error}</p>
+        </div>
+      )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <label htmlFor="email" className="text-[16px] font-semibold text-smriti-text">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="email" className="font-label-caps text-xs font-bold uppercase text-[#1a1c1c]">
             Email address
           </label>
           <input
@@ -106,7 +88,7 @@ export function ForgotPasswordForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full h-14 px-4 rounded-xl border border-gray-200 bg-gray-50 text-lg focus:outline-none focus:ring-2 focus:ring-smriti-primary/50 focus:border-smriti-primary transition-all"
+            className="w-full h-13 px-4 bg-white neo-border-2 font-body-md text-lg text-[#1a1c1c] focus:outline-none focus:bg-[#dbe1ff]/20 focus:border-[#2563eb]"
             placeholder="name@example.com"
           />
         </div>
@@ -114,18 +96,18 @@ export function ForgotPasswordForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full h-14 mt-4 bg-smriti-primary text-white rounded-xl text-lg font-bold hover:bg-smriti-primary focus:outline-none focus:ring-4 focus:ring-smriti-primary/30 transition-all shadow-md shadow-smriti-primary/20 touch-target disabled:opacity-70 flex items-center justify-center gap-2"
+          className="w-full h-14 mt-2 bg-[#2563eb] text-white neo-border shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none font-headline-lg text-xl uppercase font-black tracking-wider transition-all disabled:opacity-70 flex items-center justify-center gap-2 cursor-pointer"
         >
           {loading ? (
             <>
               <Loader2 className="w-6 h-6 animate-spin" />
-              Sending...
+              <span>Sending Reset Link...</span>
             </>
           ) : (
             "Send Reset Link"
           )}
         </button>
       </form>
-    </motion.div>
+    </div>
   );
 }

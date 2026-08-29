@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 
 export function AccessibilitySettings() {
@@ -34,73 +33,84 @@ export function AccessibilitySettings() {
   };
 
   return (
-    <motion.section 
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-      className="w-full max-w-2xl mx-auto px-4 mb-8"
-    >
-      <h2 className="text-xl font-bold text-smriti-text mb-4">Accessibility</h2>
-      <div className="bg-smriti-surface border border-smriti-border rounded-3xl overflow-hidden shadow-sm">
+    <section className="w-full max-w-3xl mx-auto mb-8">
+      <div className="pb-2 mb-4 border-b-2 border-[#1a1c1c]">
+        <h2 className="font-display-lg text-2xl font-black uppercase text-[#1a1c1c]">
+          Visual & Accessibility Controls
+        </h2>
+      </div>
+
+      <div className="bg-white neo-border neo-shadow p-6 sm:p-8 space-y-6">
         
         {/* Text Size */}
-        <div className="p-6 border-b border-smriti-border/50">
-          <label className="flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group">
-            <div>
-              <span className="block font-bold text-lg text-smriti-text group-hover:text-smriti-primary transition-colors">Text Size</span>
-              <span className="block text-sm text-smriti-muted mt-1">Scale all text globally</span>
-            </div>
-            <select 
-              value={profile.accessibility?.textSize || "standard"}
-              onChange={(e) => updateTextSize(e.target.value as any)}
-              className="px-4 py-3 bg-smriti-bg border-2 border-smriti-border rounded-xl font-bold text-smriti-text focus:outline-none focus:border-smriti-primary touch-target cursor-pointer appearance-none min-w-[140px]"
-            >
-              <option value="standard">Standard</option>
-              <option value="large">Large</option>
-              <option value="extraLarge">Extra Large</option>
-            </select>
-          </label>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="font-display-lg text-lg font-black uppercase text-[#1a1c1c]">
+              Text Sizing
+            </h3>
+            <p className="font-body-md text-xs sm:text-sm text-[#434655]">
+              Scales reading text across all screens for maximum comfort
+            </p>
+          </div>
+
+          <select 
+            value={profile.accessibility?.textSize || "standard"}
+            onChange={(e) => updateTextSize(e.target.value as any)}
+            className="h-11 px-4 bg-white neo-border-2 font-display-lg text-sm uppercase font-bold text-[#1a1c1c] focus:outline-none focus:border-[#2563eb] cursor-pointer"
+          >
+            <option value="standard">Standard (Default)</option>
+            <option value="large">Large (Senior friendly)</option>
+            <option value="extraLarge">Extra Large (High visibility)</option>
+          </select>
         </div>
 
         {/* High Contrast */}
-        <div className="p-6 border-b border-smriti-border/50">
-          <label className="flex items-center justify-between cursor-pointer group">
-            <div className="pr-4">
-              <span className="block font-bold text-lg text-smriti-text group-hover:text-smriti-primary transition-colors">High Contrast</span>
-              <span className="block text-sm text-smriti-muted mt-1">Increase visibility and borders</span>
-            </div>
-            <div className="relative">
-              <input 
-                type="checkbox" 
-                className="sr-only peer"
-                checked={profile.accessibility?.highContrast || false}
-                onChange={(e) => updateToggle("highContrast", e.target.checked)}
-              />
-              <div className="w-14 h-8 bg-smriti-border/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-smriti-success"></div>
-            </div>
-          </label>
+        <div className="pt-6 border-t-2 border-[#1a1c1c] flex items-center justify-between gap-4">
+          <div>
+            <h3 className="font-display-lg text-lg font-black uppercase text-[#1a1c1c]">
+              High Contrast Borders
+            </h3>
+            <p className="font-body-md text-xs sm:text-sm text-[#434655]">
+              Sharp 4px solid borders with pure monochrome edges
+            </p>
+          </div>
+
+          <button
+            onClick={() => updateToggle("highContrast", !(profile.accessibility?.highContrast ?? false))}
+            className={`px-5 py-2 neo-border font-headline-lg text-xs uppercase font-black tracking-wider transition-all cursor-pointer ${
+              (profile.accessibility?.highContrast ?? false)
+                ? "bg-[#6bff8f] text-[#002109] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                : "bg-[#ffdad6] text-[#ba1a1a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+            }`}
+          >
+            {(profile.accessibility?.highContrast ?? false) ? "Enabled" : "Disabled"}
+          </button>
         </div>
 
         {/* Reduced Motion */}
-        <div className="p-6">
-          <label className="flex items-center justify-between cursor-pointer group">
-            <div className="pr-4">
-              <span className="block font-bold text-lg text-smriti-text group-hover:text-smriti-primary transition-colors">Reduced Motion</span>
-              <span className="block text-sm text-smriti-muted mt-1">Disable interface animations</span>
-            </div>
-            <div className="relative">
-              <input 
-                type="checkbox" 
-                className="sr-only peer"
-                checked={profile.accessibility?.reducedMotion || false}
-                onChange={(e) => updateToggle("reducedMotion", e.target.checked)}
-              />
-              <div className="w-14 h-8 bg-smriti-border/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-smriti-success"></div>
-            </div>
-          </label>
+        <div className="pt-6 border-t-2 border-[#1a1c1c] flex items-center justify-between gap-4">
+          <div>
+            <h3 className="font-display-lg text-lg font-black uppercase text-[#1a1c1c]">
+              Reduced Motion
+            </h3>
+            <p className="font-body-md text-xs sm:text-sm text-[#434655]">
+              Disables animations and transitions for sensitive eyes
+            </p>
+          </div>
+
+          <button
+            onClick={() => updateToggle("reducedMotion", !(profile.accessibility?.reducedMotion ?? false))}
+            className={`px-5 py-2 neo-border font-headline-lg text-xs uppercase font-black tracking-wider transition-all cursor-pointer ${
+              (profile.accessibility?.reducedMotion ?? false)
+                ? "bg-[#6bff8f] text-[#002109] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                : "bg-[#ffdad6] text-[#ba1a1a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+            }`}
+          >
+            {(profile.accessibility?.reducedMotion ?? false) ? "Enabled" : "Disabled"}
+          </button>
         </div>
         
       </div>
-    </motion.section>
+    </section>
   );
 }

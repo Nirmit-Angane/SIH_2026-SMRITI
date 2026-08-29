@@ -1,74 +1,70 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mic, Volume2, ArrowRight, Check, BookOpen } from "lucide-react";
+import { Mic, Check, BookOpen } from "lucide-react";
 
 export default function VoiceAISection() {
   return (
-    <section className="py-24 bg-smriti-primary text-white overflow-hidden relative">
-      {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none">
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
-          <path d="M0,50 Q25,30 50,50 T100,50" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="5,5" />
-          <path d="M0,60 Q25,40 50,60 T100,60" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="5,5" />
-        </svg>
-      </div>
-
+    <section className="py-16 md:py-24 bg-[#2563eb] text-white border-t-[4px] border-[#1a1c1c] overflow-hidden relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-white">
-            Just speak naturally.
+          <h2 className="font-display-lg text-3xl sm:text-4xl md:text-5xl font-black mb-4 text-white uppercase tracking-tight">
+            Just Speak Naturally.
           </h2>
-          <p className="text-xl text-white/80">
-            A quiet assistant that listens carefully, helping you navigate your day and recall memories without pressing a button.
+          <p className="font-body-lg text-lg sm:text-xl text-[#eeefff]">
+            A quiet assistant that listens carefully, helping you navigate your day and recall memories without pressing small buttons.
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
           
-          {/* Left: UI Mockup */}
-          <div className="bg-white text-smriti-text p-8 rounded-[32px] shadow-sm relative">
-            <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
-              <BookOpen className="w-6 h-6 text-smriti-primary" />
-              <h3 className="font-bold text-xl">Today's Story</h3>
+          {/* Left: UI Mockup matching game_ai_story_memory reference */}
+          <div className="bg-white text-[#1a1c1c] p-8 neo-border neo-shadow">
+            <div className="flex items-center gap-3 mb-6 border-b-[3px] border-[#1a1c1c] pb-4">
+              <BookOpen className="w-6 h-6 text-[#004ac6]" />
+              <h3 className="font-headline-lg text-xl sm:text-2xl font-black uppercase">Today&apos;s Story</h3>
             </div>
             
-            <p className="text-lg leading-relaxed mb-8">
-              "It was a warm evening in Guwahati, during the Bihu festival..."
+            <p className="font-body-lg text-lg sm:text-xl leading-relaxed mb-8 text-[#434655]">
+              &ldquo;It was a warm evening in Guwahati, during the Rongali Bihu festival, when grandfather brought home the brass xorai...&rdquo;
             </p>
             
-            <div className="bg-smriti-bg rounded-2xl p-6 flex flex-col items-center justify-center gap-4 border border-smriti-border">
-              <div className="w-16 h-16 bg-smriti-primary rounded-full flex items-center justify-center text-white shadow-md relative">
-                <Mic className="w-8 h-8" />
-                <div className="absolute -inset-2 bg-smriti-primary/20 rounded-full animate-ping"></div>
+            <div className="bg-[#f9f9f8] neo-border p-6 flex flex-col items-center justify-center gap-4">
+              <div className="w-20 h-20 bg-[#dbe1ff] rounded-full flex items-center justify-center text-[#00174b] neo-border animate-pulse">
+                <Mic className="w-10 h-10 stroke-[2.5]" />
               </div>
-              <p className="font-medium text-smriti-primary text-lg">Listening...</p>
+              <p className="font-headline-lg font-black text-xl uppercase tracking-wider text-[#1a1c1c]">Listening...</p>
+              <div className="flex gap-2">
+                <div className="w-3.5 h-3.5 bg-[#ba1a1a] rounded-full border-2 border-black animate-bounce" style={{ animationDelay: "0s" }}></div>
+                <div className="w-3.5 h-3.5 bg-[#ffe083] rounded-full border-2 border-black animate-bounce" style={{ animationDelay: "0.15s" }}></div>
+                <div className="w-3.5 h-3.5 bg-[#6bff8f] rounded-full border-2 border-black animate-bounce" style={{ animationDelay: "0.3s" }}></div>
+              </div>
             </div>
           </div>
 
-          {/* Right: Features */}
-          <div className="flex flex-col gap-8">
+          {/* Right: Features in Neobrutalist containers */}
+          <div className="flex flex-col gap-6 font-body-md">
             {[
               {
                 title: "Voice-First Interaction",
-                desc: "No need to learn complex menus. Just speak to play a game, record a memory, or hear a reminder.",
+                desc: "No complex navigation needed. Speak naturally to play a game, record a memory, or hear your daily schedule.",
               },
               {
-                title: "Regional Language Support",
-                desc: "Understands Assamese, Hindi, and English (more coming soon) with natural local accents.",
+                title: "Regional Dialect Support",
+                desc: "Understands Assamese, Hindi, Bengali, Manipuri, and English with authentic regional pronunciation.",
               },
               {
-                title: "Remembers for You",
-                desc: "Mention a family event during a game, and it quietly notes it down to remind you next time.",
+                title: "Gentle Memory Retention",
+                desc: "Mention family members and milestones during conversation, and Smriti securely weaves them into future activities.",
               }
             ].map((feature, i) => (
-              <div key={i} className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0 mt-1">
-                  <Check className="w-5 h-5 text-white" />
+              <div key={i} className="bg-white/10 backdrop-blur-sm p-6 neo-border neo-shadow-sm flex gap-4 text-white">
+                <div className="w-10 h-10 rounded-full bg-[#6bff8f] text-[#002109] neo-border flex items-center justify-center shrink-0">
+                  <Check className="w-6 h-6 stroke-[3]" />
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold mb-2">{feature.title}</h4>
-                  <p className="text-white/80 text-lg leading-relaxed">{feature.desc}</p>
+                  <h4 className="font-headline-lg text-xl font-bold uppercase mb-1">{feature.title}</h4>
+                  <p className="text-white/90 text-base sm:text-lg leading-relaxed">{feature.desc}</p>
                 </div>
               </div>
             ))}

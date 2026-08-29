@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/lib/db/dexie";
+import { db, Memory } from "@/lib/db/dexie";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/components/LanguageProvider";
 import { StoryLanding } from "./StoryLanding";
@@ -10,6 +10,7 @@ import { StoryLoading } from "./StoryLoading";
 import { StoryPlayer } from "./StoryPlayer";
 import { StoryCompletion } from "./StoryCompletion";
 import { AnimatePresence } from "framer-motion";
+import { STORY_LANGUAGES } from "@/lib/constants/languages";
 
 type StoryState = "landing" | "loading" | "error" | "playing" | "completed";
 
@@ -18,12 +19,15 @@ interface StoryData {
   story: string;
   theme: string;
   estimatedDuration: string;
+  isOriginal?: boolean;
+  language?: string;
+  langId?: string;
 }
 
 export function StoryActivity() {
   const { profile } = useAuth();
-  const { language, t } = useLanguage();
-  const elderId = 1; // MVP standard
+  const { language: systemLang } = useLanguage();
+  const elderId = 1;
 
   const allFamily = useLiveQuery(() => db.familyMembers.where({ elderId }).toArray(), [elderId]);
   const allMemories = useLiveQuery(() => db.memories.where({ elderId }).toArray(), [elderId]);
@@ -31,6 +35,7 @@ export function StoryActivity() {
   const [gameState, setGameState] = useState<StoryState>("landing");
   const [storyData, setStoryData] = useState<StoryData | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [activeLangId, setActiveLangId] = useState<string>(systemLang === "hi" ? "hi" : "en");
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
@@ -41,9 +46,34 @@ export function StoryActivity() {
     };
   }, [audioUrl]);
 
-  const generateStory = async () => {
-    if (!profile) return;
-    
+  const startStory = async (selectedMemory?: Memory, mode: "original" | "ai" = "ai", targetLangId?: string) => {
+    const langToUse = targetLangId || activeLangId || (systemLang === "hi" ? "hi" : "en");
+    setActiveLangId(langToUse);
+
+    // 1. If Original Mode is chosen, play exact user's written memory with zero AI alteration
+    if (mode === "original" && selectedMemory) {
+      const originalText = [
+        selectedMemory.title,
+        selectedMemory.year ? `Year ${selectedMemory.year}.` : "",
+        selectedMemory.description || ""
+      ].filter(Boolean).join(" — ");
+
+      const targetLangObj = STORY_LANGUAGES.find(l => l.id === langToUse) || STORY_LANGUAGES[3];
+
+      setStoryData({
+        title: selectedMemory.title + (selectedMemory.year ? ` (${selectedMemory.year})` : ""),
+        story: originalText,
+        theme: "Original User Memory",
+        estimatedDuration: "Exact Memory",
+        isOriginal: true,
+        language: targetLangObj.name,
+        langId: targetLangObj.id
+      });
+      setGameState("playing");
+      return;
+    }
+
+    // 2. Otherwise, generate vivid AI adaptation in chosen language
     setGameState("loading");
     setErrorMessage("");
     if (audioUrl && audioUrl.startsWith('blob:')) {
@@ -52,16 +82,24 @@ export function StoryActivity() {
     }
 
     try {
-      // 1. Prepare Context
       const context = {
-        patientName: profile.name,
-        region: profile.region,
-        language: language === "hi" ? "hi" : "en",
+        patientName: profile?.name || "Elder",
+        region: profile?.region || "Northeast India",
+        language: langToUse,
+        targetLangId: langToUse,
+        selectedMemory: selectedMemory ? {
+          title: selectedMemory.title,
+          year: selectedMemory.year,
+          description: selectedMemory.description || "",
+        } : undefined,
         familyMembers: allFamily?.map(f => ({ name: f.name, relation: f.relationship })) || [],
-        memories: allMemories?.map(m => ({ title: m.title, year: m.year })) || [],
+        memories: allMemories?.map(m => ({ 
+          title: m.title, 
+          year: m.year,
+          description: m.description || ""
+        })) || [],
       };
 
-      // 2. Fetch Story from Groq
       const storyRes = await fetch("/api/story/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -70,15 +108,48 @@ export function StoryActivity() {
 
       if (!storyRes.ok) throw new Error("Failed to generate story");
       const generatedData: StoryData = await storyRes.json();
-      setStoryData(generatedData);
+      setStoryData({
+        ...generatedData,
+        isOriginal: false,
+        langId: langToUse
+      });
 
-      // 3. TTS is now handled via Capacitor in StoryPlayer
       setGameState("playing");
 
     } catch (e) {
       console.error(e);
-      setErrorMessage(t("games.storyTime.error") || "We couldn't prepare the story right now.");
+      setErrorMessage("We couldn't prepare the story right now. Please try again.");
       setGameState("error");
+    }
+  };
+
+  const handleTranslate = async (targetLangId: string) => {
+    if (!storyData) return;
+    try {
+      const res = await fetch("/api/story/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: storyData.title,
+          story: storyData.story,
+          targetLanguage: targetLangId
+        })
+      });
+
+      if (res.ok) {
+        const translated = await res.json();
+        const targetLangObj = STORY_LANGUAGES.find(l => l.id === targetLangId) || STORY_LANGUAGES[3];
+        setStoryData({
+          ...storyData,
+          title: translated.title || storyData.title,
+          story: translated.story || storyData.story,
+          language: targetLangObj.name,
+          langId: targetLangObj.id
+        });
+        setActiveLangId(targetLangId);
+      }
+    } catch (e) {
+      console.error("Live story translation error:", e);
     }
   };
 
@@ -105,7 +176,10 @@ export function StoryActivity() {
     <div className="w-full">
       <AnimatePresence mode="wait">
         {gameState === "landing" && (
-          <StoryLanding key="landing" onBegin={generateStory} />
+          <StoryLanding 
+            key="landing" 
+            onBegin={(mem, mode, targetLang) => startStory(mem, mode, targetLang)} 
+          />
         )}
         
         {gameState === "loading" && (
@@ -114,9 +188,12 @@ export function StoryActivity() {
 
         {gameState === "error" && (
           <div key="error" className="flex flex-col items-center justify-center min-h-[50vh] text-center">
-            <p className="text-xl text-smriti-muted font-bold mb-4">{errorMessage}</p>
-            <button onClick={generateStory} className="bg-smriti-primary text-white px-6 py-3 rounded-full font-bold">
-              {t("games.storyTime.tryAgain") || "Try Again"}
+            <p className="text-xl text-[#ba1a1a] font-bold mb-4">{errorMessage}</p>
+            <button 
+              onClick={() => startStory(undefined, "ai", activeLangId)} 
+              className="bg-[#2563eb] text-white px-6 py-3 neo-border neo-shadow font-headline-lg uppercase font-bold"
+            >
+              Try Again
             </button>
           </div>
         )}
@@ -129,6 +206,9 @@ export function StoryActivity() {
             audioUrl={audioUrl}
             estimatedDuration={storyData.estimatedDuration}
             theme={storyData.theme}
+            isOriginal={storyData.isOriginal}
+            currentLanguage={storyData.langId || activeLangId}
+            onTranslate={handleTranslate}
             onFinish={handleFinish}
           />
         )}
@@ -137,7 +217,7 @@ export function StoryActivity() {
           <StoryCompletion 
             key="completed"
             onPlayAgain={() => setGameState("playing")}
-            onNewStory={generateStory}
+            onNewStory={() => setGameState("landing")}
           />
         )}
       </AnimatePresence>

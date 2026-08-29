@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 
 interface RoleSelectorProps {
@@ -16,8 +15,8 @@ export function RoleSelector({ selectedRole, onChange }: RoleSelectorProps) {
   ];
 
   return (
-    <div className="flex flex-col gap-2 mb-4">
-      <label className="text-[18px] font-bold text-smriti-text mb-2">
+    <div className="flex flex-col gap-3 mb-6">
+      <label className="font-headline-lg text-lg uppercase font-black text-[#1a1c1c]">
         Who will use SMRITI?
       </label>
       <div className="flex flex-col gap-3">
@@ -28,19 +27,21 @@ export function RoleSelector({ selectedRole, onChange }: RoleSelectorProps) {
               key={role.id}
               type="button"
               onClick={() => onChange(role.id)}
-              className={`relative flex items-center justify-between p-4 rounded-xl border text-left touch-target transition-all ${
+              className={`relative flex items-center justify-between p-4 sm:p-5 text-left transition-all ${
                 isSelected 
-                  ? 'border-smriti-primary bg-smriti-primary/5 shadow-sm' 
-                  : 'border-gray-200 bg-white hover:border-smriti-primary/30'
+                  ? 'bg-[#dbe1ff] border-[4px] border-[#1a1c1c] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-[#00174b]' 
+                  : 'bg-white border-[2px] border-[#1a1c1c] hover:bg-[#f4f4f3] text-[#1a1c1c]'
               }`}
             >
-              <span className={`text-lg font-medium ${isSelected ? 'text-smriti-primary' : 'text-smriti-text'}`}>
+              <span className="font-headline-lg text-lg font-black uppercase tracking-tight">
                 {role.label}
               </span>
-              {isSelected && (
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                  <CheckCircle2 className="w-6 h-6 text-smriti-primary" />
-                </motion.div>
+              {isSelected ? (
+                <div className="w-7 h-7 bg-[#2563eb] text-white neo-border flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 stroke-[3]" />
+                </div>
+              ) : (
+                <div className="w-7 h-7 bg-white neo-border-2"></div>
               )}
             </button>
           );

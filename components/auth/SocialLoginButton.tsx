@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { auth, db } from "@/lib/firebase/config";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 
 export function SocialLoginButton({ text = "Continue with Google", role = "Elderly User" }: { text?: string, role?: string }) {
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,6 @@ export function SocialLoginButton({ text = "Continue with Google", role = "Elder
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Check if user exists in Firestore
       const docRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(docRef);
 
@@ -30,18 +29,12 @@ export function SocialLoginButton({ text = "Continue with Google", role = "Elder
           router.push("/onboarding");
         }
       } else {
-        // New user, send to onboarding
         router.push("/onboarding");
       }
     } catch (error: any) {
       console.error("Google Login failed", error);
-      
-      // If it's a permissions error reading the doc, it means we logged in but rules are broken.
-      // Fallback to sending them to onboarding so they aren't stuck!
       if (auth.currentUser) {
         router.push("/onboarding");
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     } finally {
       setLoading(false);
@@ -53,12 +46,12 @@ export function SocialLoginButton({ text = "Continue with Google", role = "Elder
       onClick={handleGoogleLogin}
       disabled={loading}
       type="button"
-      className="w-full h-14 flex items-center justify-center gap-3 bg-white border border-gray-200 rounded-xl text-lg font-bold text-smriti-text hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all shadow-sm touch-target disabled:opacity-70"
+      className="w-full h-14 flex items-center justify-center gap-3 bg-white text-[#1a1c1c] neo-border shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none font-headline-lg text-lg uppercase font-black tracking-wide transition-all disabled:opacity-70 cursor-pointer"
     >
       {loading ? (
-        <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-[#1a1c1c]" />
       ) : (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-6 h-6">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-6 h-6 shrink-0">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
           <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
@@ -66,7 +59,7 @@ export function SocialLoginButton({ text = "Continue with Google", role = "Elder
           <path d="M1 1h22v22H1z" fill="none" />
         </svg>
       )}
-      {loading ? "Connecting..." : text}
+      <span>{loading ? "Connecting..." : text}</span>
     </button>
   );
 }

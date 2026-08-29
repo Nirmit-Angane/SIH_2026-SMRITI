@@ -1,57 +1,59 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { ACTIVITIES } from "@/lib/activities";
-import { Clock } from "lucide-react";
+import { Clock, ArrowRight } from "lucide-react";
+
+const BG_COLORS = [
+  "bg-[#dbe1ff]",
+  "bg-[#6bff8f]",
+  "bg-[#ffe083]",
+  "bg-[#ffdad6]"
+];
 
 export function ActivityLibrary() {
   return (
-    <section className="w-full max-w-4xl mx-auto px-4 mb-16">
+    <section className="w-full mb-16">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {ACTIVITIES.map((activity, i) => {
           const Icon = activity.icon;
+          const bg = BG_COLORS[i % BG_COLORS.length];
           return (
-            <motion.div 
+            <Link 
               key={activity.id}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 * i, ease: "easeOut" }}
+              href={activity.href}
+              className={`block h-full ${bg} neo-border neo-shadow transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6 sm:p-8 group`}
             >
-              <Link 
-                href={activity.href}
-                className="block h-full bg-smriti-surface border-2 border-smriti-border rounded-[24px] p-6 hover:border-smriti-primary hover:shadow-xl hover:shadow-smriti-primary/10 transition-all duration-300 group"
-              >
-                <div className="flex flex-col h-full justify-between gap-6">
-                  
-                  <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 bg-smriti-primary/10 text-smriti-primary group-hover:scale-105 transition-transform">
-                      <Icon className="w-8 h-8" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-smriti-text mb-1 group-hover:text-smriti-primary transition-colors">
-                        {activity.title}
-                      </h3>
-                      <p className="text-lg text-smriti-text/80 leading-snug">
-                        {activity.desc}
-                      </p>
-                    </div>
+              <div className="flex flex-col h-full justify-between gap-6">
+                
+                <div className="flex items-start gap-4">
+                  <div className="w-16 h-16 bg-white neo-border flex items-center justify-center shrink-0 text-[#1a1c1c]">
+                    <Icon className="w-8 h-8 stroke-[2.5]" />
                   </div>
-                  
-                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-smriti-border/50">
-                    <div className="flex items-center gap-2 text-smriti-muted font-medium">
-                      <Clock className="w-4 h-4" />
-                      <span>About 5 minutes</span>
-                    </div>
-                    
-                    <span className="font-bold text-smriti-primary text-lg group-hover:underline">
-                      {activity.cta}
-                    </span>
+                  <div>
+                    <h3 className="font-headline-lg text-2xl sm:text-3xl font-black uppercase text-[#1a1c1c] mb-1">
+                      {activity.title}
+                    </h3>
+                    <p className="font-body-md text-base text-[#434655]">
+                      {activity.desc}
+                    </p>
                   </div>
-                  
                 </div>
-              </Link>
-            </motion.div>
+                
+                <div className="flex items-center justify-between pt-4 border-t-[2px] border-[#1a1c1c]">
+                  <div className="flex items-center gap-1.5 font-label-caps text-xs text-[#1a1c1c] font-bold uppercase">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>~5 Mins</span>
+                  </div>
+                  
+                  <span className="font-label-caps text-xs font-bold uppercase bg-[#1a1c1c] text-white px-3 py-1.5 neo-border inline-flex items-center gap-1 group-hover:bg-[#004ac6] transition-colors">
+                    {activity.cta}
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
+                </div>
+                
+              </div>
+            </Link>
           );
         })}
       </div>

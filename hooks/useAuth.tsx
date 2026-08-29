@@ -2,7 +2,7 @@
 
 import { useState, useEffect, createContext, useContext } from 'react';
 import { onAuthStateChanged, User, signOut as firebaseSignOut } from 'firebase/auth';
-import { doc, onSnapshot, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
 
@@ -62,14 +62,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const docRef = doc(db, "users", firebaseUser.uid);
         unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
           if (docSnap.exists()) {
-            const data = docSnap.data() as PatientProfile;
+            const data = docSnap.data() as Partial<PatientProfile>;
+            const isCompleted = data.onboardingCompleted === true;
+            
             const fullProfile: PatientProfile = {
               name: data.name || firebaseUser.displayName || "User",
               region: data.region || "Assam",
               supportLevel: data.supportLevel || "gentle",
               language: data.language || "en",
               usageContext: data.usageContext || "home",
-              onboardingCompleted: true,
+              onboardingCompleted: isCompleted,
               accessibility: data.accessibility || {
                 textSize: "standard",
                 highContrast: false,
@@ -80,21 +82,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             };
             setProfile(fullProfile);
             if (typeof window !== "undefined") {
-              localStorage.setItem("smriti_onboarding_completed", "true");
+              if (isCompleted) {
+                localStorage.setItem("smriti_onboarding_completed", "true");
+              } else {
+                localStorage.removeItem("smriti_onboarding_completed");
+              }
             }
           } else {
-            // Document doesn't exist yet, fallback
+            // Document doesn't exist yet (brand new registration in progress)
             const defaultProf: PatientProfile = {
               name: firebaseUser.displayName || "User",
               region: "Assam",
               supportLevel: "gentle",
               language: "en",
               usageContext: "home",
-              onboardingCompleted: true
+              onboardingCompleted: false
             };
             setProfile(defaultProf);
             if (typeof window !== "undefined") {
-              localStorage.setItem("smriti_onboarding_completed", "true");
+              localStorage.removeItem("smriti_onboarding_completed");
             }
           }
           setLoading(false);

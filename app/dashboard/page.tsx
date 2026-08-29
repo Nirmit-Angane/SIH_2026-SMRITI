@@ -3,29 +3,36 @@
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { HomeGreeting } from "@/components/home/HomeGreeting";
-import { TodaysGentleMoment } from "@/components/home/TodaysGentleMoment";
-import { DailyCheckIn } from "@/components/home/DailyCheckIn";
-import { DailyTimeline } from "@/components/home/DailyTimeline";
-import { HydrationCard } from "@/components/home/HydrationCard";
+import { RecommendedActivityHero } from "@/components/dashboard/RecommendedActivityHero";
 import { FamiliarFace } from "@/components/home/FamiliarFace";
-import dynamic from 'next/dynamic';
+import { TalkToSmritiHome } from "@/components/home/TalkToSmritiHome";
+import { QuickActivityLauncher } from "@/components/home/QuickActivityLauncher";
 
-const TalkToSmritiHome = dynamic(
-  () => import("@/components/home/TalkToSmritiHome").then((mod) => mod.TalkToSmritiHome),
-  { ssr: false }
-);
 export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <DashboardLayout>
-        <div className="pt-6 md:pt-10 flex flex-col items-center">
+        <div className="w-full max-w-7xl mx-auto flex flex-col gap-6">
+          
+          {/* Greeting Header */}
           <HomeGreeting />
-          <TodaysGentleMoment />
-          <DailyCheckIn />
-          <HydrationCard />
-          <DailyTimeline />
-          <FamiliarFace />
-          <TalkToSmritiHome />
+
+          {/* Recommended Cognitive Activity Hero */}
+          <RecommendedActivityHero />
+
+          {/* 2-Column Balanced Row: Care Spotlight & Voice Assistant */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="lg:col-span-6">
+              <FamiliarFace />
+            </div>
+            <div className="lg:col-span-6">
+              <TalkToSmritiHome />
+            </div>
+          </div>
+
+          {/* Quick Activities Hub */}
+          <QuickActivityLauncher />
+
         </div>
       </DashboardLayout>
     </ProtectedRoute>

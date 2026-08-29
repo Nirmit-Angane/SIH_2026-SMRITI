@@ -1,13 +1,13 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
+import { CheckSquare, Square, Sparkles } from "lucide-react";
 
 const ACTIVITY_CATEGORIES = [
   { id: "family", label: "Family & Friends" },
   { id: "memory_cards", label: "Memory Cards" },
   { id: "story_time", label: "Story Time" },
-  { id: "what_changed", label: "What Changed?" },
+  { id: "what_changed", label: "Mind Puzzle" },
 ];
 
 export function ActivityPreferences() {
@@ -45,62 +45,80 @@ export function ActivityPreferences() {
   };
 
   return (
-    <motion.section 
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-      className="w-full max-w-2xl mx-auto px-4 mb-8"
-    >
-      <h2 className="text-xl font-bold text-smriti-text mb-4">Activities</h2>
-      <div className="bg-smriti-surface border border-smriti-border rounded-3xl overflow-hidden shadow-sm">
+    <section className="w-full mb-6">
+      <div className="pb-2 mb-3 border-b-2 border-[#1a1c1c]">
+        <h2 className="font-display-lg text-xl sm:text-2xl font-black uppercase text-[#1a1c1c]">
+          Activity Preferences
+        </h2>
+      </div>
+
+      <div className="bg-white neo-border neo-shadow p-5 sm:p-6 space-y-5">
         
         {/* Category Selection */}
-        <div className="p-6 border-b border-smriti-border/50">
-          <span className="block font-bold text-lg text-smriti-text mb-1">Preferred activities</span>
-          <span className="block text-sm text-smriti-muted mb-4">Select what feels right for you</span>
+        <div>
+          <span className="block font-headline-lg text-base font-black uppercase text-[#1a1c1c] mb-1">
+            Preferred Activities
+          </span>
+          <span className="block font-body-md text-xs sm:text-sm text-[#434655] mb-3">
+            Select exercise types you enjoy most for your daily routine
+          </span>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {ACTIVITY_CATEGORIES.map(category => (
-              <label 
-                key={category.id} 
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all touch-target ${
-                  preferredActivities.includes(category.id) 
-                    ? "bg-smriti-primary/10 border-smriti-primary text-smriti-primary" 
-                    : "bg-smriti-bg border-smriti-border/50 text-smriti-text hover:border-smriti-border"
-                }`}
-              >
-                <input 
-                  type="checkbox"
-                  className="w-5 h-5 accent-smriti-primary"
-                  checked={preferredActivities.includes(category.id)}
-                  onChange={() => toggleCategory(category.id)}
-                />
-                <span className="font-bold">{category.label}</span>
-              </label>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {ACTIVITY_CATEGORIES.map(category => {
+              const isChecked = preferredActivities.includes(category.id);
+              return (
+                <button
+                  type="button"
+                  key={category.id}
+                  onClick={() => toggleCategory(category.id)}
+                  className={`flex items-center gap-2.5 p-3 neo-border text-left transition-all cursor-pointer ${
+                    isChecked
+                      ? "bg-[#2563eb] text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] translate-x-[1px] translate-y-[1px]"
+                      : "bg-[#f9f9f8] text-[#1a1c1c] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-[#ffe083]"
+                  }`}
+                >
+                  {isChecked ? (
+                    <CheckSquare className="w-4 h-4 text-white shrink-0 stroke-[2.5]" />
+                  ) : (
+                    <Square className="w-4 h-4 text-[#434655] shrink-0" />
+                  )}
+                  <span className="font-display-lg text-xs sm:text-sm font-black uppercase tracking-tight">
+                    {category.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Daily Activity Toggle */}
-        <div className="p-6">
-          <label className="flex items-center justify-between cursor-pointer group">
-            <div className="pr-4">
-              <span className="block font-bold text-lg text-smriti-text group-hover:text-smriti-primary transition-colors">Gentle daily activity</span>
-              <span className="block text-sm text-smriti-muted mt-1">Receive a daily recommended moment</span>
+        {/* Daily Recommended Moment Toggle */}
+        <div className="pt-4 border-t-2 border-[#1a1c1c] flex items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <Sparkles className="w-4 h-4 text-[#735c00]" />
+              <span className="font-headline-lg text-sm sm:text-base font-black uppercase text-[#1a1c1c]">
+                Gentle Daily Moment
+              </span>
             </div>
-            <div className="relative">
-              <input 
-                type="checkbox" 
-                className="sr-only peer"
-                checked={profile.preferences?.dailyActivity ?? true}
-                onChange={(e) => toggleDailyActivity(e.target.checked)}
-              />
-              <div className="w-14 h-8 bg-smriti-border/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-smriti-success"></div>
-            </div>
-          </label>
+            <span className="font-body-md text-xs text-[#434655]">
+              Get an automatic daily reminder
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => toggleDailyActivity(!(profile.preferences?.dailyActivity ?? true))}
+            className={`px-4 py-1.5 neo-border font-headline-lg text-xs uppercase font-black tracking-wider transition-all cursor-pointer ${
+              (profile.preferences?.dailyActivity ?? true)
+                ? "bg-[#6bff8f] text-[#002109] shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                : "bg-[#ffdad6] text-[#ba1a1a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+            }`}
+          >
+            {(profile.preferences?.dailyActivity ?? true) ? "On" : "Off"}
+          </button>
         </div>
         
       </div>
-    </motion.section>
+    </section>
   );
 }

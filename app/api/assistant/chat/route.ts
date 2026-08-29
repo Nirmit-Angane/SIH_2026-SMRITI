@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server';
 
+const GROQ_MODELS = [
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b",
+  "qwen/qwen3.8-27b",
+  "qwen/qwen3.6-27b"
+];
+
 export async function POST(req: Request) {
   let isHindi = false;
   let patientName = "there";
@@ -15,7 +22,7 @@ export async function POST(req: Request) {
       return NextResponse.json({
         response: isHindi 
           ? `नमस्ते ${context?.patientName ? context.patientName + " जी" : ""}! आज आप कैसा महसूस कर रहे हैं?`
-          : `Hello ${patientName}! How are you feeling today? I am here to assist you.`
+          : `Hello ${patientName}! How are you feeling today? I am here with you.`
       });
     }
 
@@ -55,49 +62,35 @@ Only output valid JSON in the exact following structure with no markdown:
 
     const userPrompt = `[TARGET LANGUAGE: ${isHindi ? "Hindi (Devanagari)" : "English"}] User said: "${transcript}"`;
 
-    let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...formattedHistory,
-          { role: "user", content: userPrompt }
-        ],
-        temperature: 0.6,
-        response_format: { type: "json_object" }
-      })
-    });
+    for (const model of GROQ_MODELS) {
+      try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: systemPrompt },
+              ...formattedHistory,
+              { role: "user", content: userPrompt }
+            ],
+            temperature: 0.6,
+            response_format: { type: "json_object" }
+          })
+        });
 
-    if (!response.ok) {
-      response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          messages: [
-            { role: "system", content: systemPrompt },
-            ...formattedHistory,
-            { role: "user", content: userPrompt }
-          ],
-          temperature: 0.6,
-          response_format: { type: "json_object" }
-        })
-      });
-    }
-
-    if (response.ok) {
-      const data = await response.json();
-      const content = JSON.parse(data.choices[0].message.content);
-      if (content.response) {
-        return NextResponse.json(content);
+        if (response.ok) {
+          const data = await response.json();
+          const content = JSON.parse(data.choices[0].message.content);
+          if (content.response) {
+            return NextResponse.json(content);
+          }
+        }
+      } catch (err) {
+        console.warn(`Groq assistant model ${model} failed, trying next...`, err);
       }
     }
 

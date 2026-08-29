@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut } from "lucide-react";
+import { LogOut, Mail, AlertCircle } from "lucide-react";
 
 export function AccountSettings() {
   const { user, logout } = useAuth();
@@ -13,35 +13,46 @@ export function AccountSettings() {
   const handleSignOut = async () => {
     setIsSigningOut(true);
     await logout();
-    // logout will redirect, no need to set state back
   };
 
   return (
-    <motion.section 
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
-      className="w-full max-w-2xl mx-auto px-4 mb-16"
-    >
-      <h2 className="text-xl font-bold text-smriti-text mb-4">Account</h2>
-      <div className="bg-smriti-surface border border-smriti-border rounded-3xl overflow-hidden shadow-sm">
+    <section className="w-full mb-8">
+      <div className="pb-2 mb-3 border-b-2 border-[#1a1c1c]">
+        <h2 className="font-display-lg text-xl sm:text-2xl font-black uppercase text-[#1a1c1c]">
+          Account Details
+        </h2>
+      </div>
+
+      <div className="bg-white neo-border neo-shadow p-5 sm:p-6 space-y-4">
         
-        <div className="p-6 border-b border-smriti-border/50">
-          <div className="flex flex-col">
-            <span className="block font-bold text-lg text-smriti-text mb-1">Email</span>
-            <span className="block text-sm text-smriti-muted">
-              {user?.email || "No email linked"}
-            </span>
+        {/* Email Badge */}
+        <div className="flex items-center justify-between gap-3 bg-[#f4f4f3] neo-border p-3.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Mail className="w-4 h-4 text-[#434655] shrink-0" />
+            <div className="min-w-0">
+              <span className="block font-label-caps text-[10px] font-bold uppercase text-[#434655]">
+                Signed In As
+              </span>
+              <span className="block font-display-lg text-sm sm:text-base font-bold text-[#1a1c1c] truncate">
+                {user?.email || "Local Guest User"}
+              </span>
+            </div>
           </div>
+
+          <span className="bg-[#6bff8f] text-[#002109] neo-border px-2.5 py-0.5 font-label-caps text-[10px] font-bold uppercase shrink-0">
+            Active
+          </span>
         </div>
 
-        <div className="p-6 flex justify-center">
+        {/* Sign Out Button */}
+        <div className="pt-2">
           <button 
+            type="button"
             onClick={() => setShowSignOutConfirm(true)}
-            className="w-full md:w-auto px-8 py-4 bg-transparent border-2 border-smriti-text text-smriti-text font-bold text-lg rounded-full hover:bg-smriti-text hover:text-smriti-bg transition-colors touch-target flex items-center justify-center gap-3"
+            className="w-full py-3 px-4 bg-[#ffdad6] text-[#ba1a1a] neo-border shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all font-headline-lg text-sm uppercase font-black tracking-wider flex items-center justify-center gap-2 cursor-pointer"
           >
-            <LogOut className="w-5 h-5" />
-            Sign Out
+            <LogOut className="w-4 h-4 stroke-[2.5]" />
+            <span>Sign Out of Account</span>
           </button>
         </div>
 
@@ -56,35 +67,45 @@ export function AccountSettings() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowSignOutConfirm(false)}
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-sm bg-smriti-surface rounded-[32px] p-6 md:p-8 shadow-2xl text-center"
+              className="relative w-full max-w-sm bg-white neo-border neo-shadow p-6 text-center z-10"
             >
-              <h3 className="text-2xl font-bold text-smriti-text mb-6">Sign out of SMRITI?</h3>
-              <div className="flex flex-col gap-3">
+              <div className="w-14 h-14 bg-[#ffe083] text-[#231b00] neo-border flex items-center justify-center mx-auto mb-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                <AlertCircle className="w-7 h-7 stroke-[2.5]" />
+              </div>
+              <h3 className="font-display-lg text-2xl font-black uppercase text-[#1a1c1c] mb-2">
+                Sign Out?
+              </h3>
+              <p className="font-body-md text-xs sm:text-sm text-[#434655] mb-6">
+                You can log back in anytime with your email and password.
+              </p>
+              <div className="flex gap-3">
                 <button 
-                  onClick={handleSignOut}
-                  disabled={isSigningOut}
-                  className="w-full py-4 bg-smriti-text text-smriti-bg font-bold text-lg rounded-full touch-target disabled:opacity-50"
-                >
-                  {isSigningOut ? "Signing out..." : "Sign Out"}
-                </button>
-                <button 
+                  type="button"
                   onClick={() => setShowSignOutConfirm(false)}
                   disabled={isSigningOut}
-                  className="w-full py-4 bg-transparent text-smriti-text font-bold text-lg rounded-full border-2 border-smriti-border touch-target disabled:opacity-50"
+                  className="flex-1 py-3 bg-white text-[#1a1c1c] neo-border font-headline-lg text-xs uppercase font-black cursor-pointer hover:bg-[#f4f4f3]"
                 >
-                  Stay signed in
+                  Stay
+                </button>
+                <button 
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
+                  className="flex-1 py-3 bg-[#ba1a1a] text-white neo-border shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-headline-lg text-xs uppercase font-black cursor-pointer hover:bg-[#93000a] disabled:opacity-50"
+                >
+                  {isSigningOut ? "Signing Out..." : "Sign Out"}
                 </button>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-    </motion.section>
+    </section>
   );
 }

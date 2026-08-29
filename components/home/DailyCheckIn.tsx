@@ -1,48 +1,42 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useState } from "react";
 
 const MOODS = [
-  { id: "good", emoji: "😊", label: "Good" },
-  { id: "okay", emoji: "🙂", label: "Okay" },
-  { id: "calm", emoji: "😌", label: "Calm" },
-  { id: "quiet", emoji: "😐", label: "Quiet" },
+  { id: "good", emoji: "😊", label: "Good", bg: "bg-[#6bff8f] text-[#002109]" },
+  { id: "okay", emoji: "🙂", label: "Okay", bg: "bg-[#dbe1ff] text-[#00174b]" },
+  { id: "calm", emoji: "😌", label: "Calm", bg: "bg-[#ffe083] text-[#231b00]" },
+  { id: "quiet", emoji: "😐", label: "Quiet", bg: "bg-[#ffdad6] text-[#93000a]" },
 ];
 
 export function DailyCheckIn() {
   const [selected, setSelected] = useState<string | null>(null);
 
   return (
-    <motion.section 
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-      className="w-full max-w-2xl mx-auto px-4 mb-12"
-    >
-      <h3 className="text-xl font-bold text-smriti-text mb-4 text-center md:text-left">
+    <section className="w-full mb-12">
+      <h3 className="font-headline-lg text-2xl sm:text-3xl font-black text-[#1a1c1c] uppercase mb-4 border-b-[4px] border-[#1a1c1c] pb-1 inline-block">
         How are you feeling today?
       </h3>
       
-      <div className="flex flex-wrap gap-3 md:gap-4 justify-center md:justify-start">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
         {MOODS.map((mood) => {
           const isSelected = selected === mood.id;
           return (
             <button
               key={mood.id}
               onClick={() => setSelected(mood.id)}
-              className={`flex items-center gap-2 px-5 py-3 rounded-2xl transition-all duration-300 touch-target
-                ${isSelected 
-                  ? 'bg-smriti-primary text-white shadow-md' 
-                  : 'bg-smriti-surface border border-smriti-border hover:bg-smriti-primary/5 text-smriti-text'
-                }`}
+              className={`flex items-center justify-center gap-3 p-4 neo-border ${
+                isSelected 
+                  ? `${mood.bg} translate-x-[4px] translate-y-[4px] shadow-none` 
+                  : "bg-white text-[#1a1c1c] neo-shadow-sm neo-shadow-hover neo-shadow-active"
+              } transition-all`}
             >
-              <span className="text-2xl">{mood.emoji}</span>
-              <span className="font-bold text-lg">{mood.label}</span>
+              <span className="text-3xl">{mood.emoji}</span>
+              <span className="font-headline-lg text-lg uppercase font-black">{mood.label}</span>
             </button>
           );
         })}
       </div>
-    </motion.section>
+    </section>
   );
 }

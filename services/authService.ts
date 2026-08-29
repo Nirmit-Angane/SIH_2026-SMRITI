@@ -25,14 +25,14 @@ export const authService = {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
-    // 2. Create user profile in Firestore
+    // 2. Create user profile in Firestore with onboardingCompleted = false
     await setDoc(doc(db, "users", user.uid), {
       name,
       email,
       role,
-      region: "Assam",
+      region: "assam",
       language: "en",
-      onboardingCompleted: true,
+      onboardingCompleted: false,
       accessibilityPreferences: {
         textSize: "standard",
         highContrast: false,
@@ -45,7 +45,7 @@ export const authService = {
     
     if (typeof window !== "undefined") {
       localStorage.setItem("smriti_user_active", "true");
-      localStorage.setItem("smriti_onboarding_completed", "true");
+      localStorage.removeItem("smriti_onboarding_completed");
     }
 
     return userCredential;
@@ -85,14 +85,14 @@ export const authService = {
     const userDocSnap = await getDoc(userDocRef);
     
     if (!userDocSnap.exists()) {
-      // Create new profile if it doesn't exist
+      // Create new profile with onboardingCompleted = false
       await setDoc(userDocRef, {
         name: user.displayName || "User",
         email: user.email,
         role: role || "Elderly User",
-        region: "Assam",
+        region: "assam",
         language: "en",
-        onboardingCompleted: true,
+        onboardingCompleted: false,
         accessibilityPreferences: {
           textSize: "standard",
           highContrast: false,
@@ -102,11 +102,13 @@ export const authService = {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("smriti_onboarding_completed");
+      }
     }
 
     if (typeof window !== "undefined") {
       localStorage.setItem("smriti_user_active", "true");
-      localStorage.setItem("smriti_onboarding_completed", "true");
     }
     
     return userCredential;

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ImagePlus, Trash2, Calendar, FileText } from "lucide-react";
+import { X, ImagePlus, Trash2 } from "lucide-react";
 import { Memory } from "@/lib/db/dexie";
 import { memoryStorage, compressImage } from "@/lib/family/memoryStorage";
 
@@ -26,7 +26,6 @@ export function AddMemoryModal({ isOpen, onClose, existingMemory }: AddMemoryMod
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
-  // Initialize form if editing
   useEffect(() => {
     if (isOpen && existingMemory) {
       setTitle(existingMemory.title);
@@ -42,7 +41,6 @@ export function AddMemoryModal({ isOpen, onClose, existingMemory }: AddMemoryMod
       setErrorMsg("");
       setShowToast(false);
     } else if (isOpen) {
-      // Reset form
       setTitle("");
       setYear(new Date().getFullYear().toString());
       setDescription("");
@@ -69,7 +67,7 @@ export function AddMemoryModal({ isOpen, onClose, existingMemory }: AddMemoryMod
 
     const MAX_SIZE = 5 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-      setErrorMsg("This photo is a little too large. Please choose a photo under 5 MB.");
+      setErrorMsg("Please choose a photo under 5 MB.");
       return;
     }
 
@@ -83,28 +81,20 @@ export function AddMemoryModal({ isOpen, onClose, existingMemory }: AddMemoryMod
       setPhotoPreview(URL.createObjectURL(compressed));
     } catch (err) {
       console.error(err);
-      setErrorMsg("Something went wrong while processing the image. Please try another one.");
+      setErrorMsg("Could not process this image. Please try another.");
     }
   };
 
   const removePhoto = () => {
     setPhotoBlob(null);
-    if (photoPreview) {
-      URL.revokeObjectURL(photoPreview);
-      setPhotoPreview(null);
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSave = async () => {
     if (!title.trim()) {
-      setErrorMsg("Please enter a title for this memory.");
-      return;
-    }
-    if (!year.trim()) {
-      setErrorMsg("Please enter the year.");
+      setErrorMsg("Please give this memory a title.");
       return;
     }
 
@@ -112,38 +102,37 @@ export function AddMemoryModal({ isOpen, onClose, existingMemory }: AddMemoryMod
     setErrorMsg("");
 
     try {
-      if (existingMemory?.id) {
+      if (existingMemory && existingMemory.id) {
         await memoryStorage.updateMemory(existingMemory.id, {
           title: title.trim(),
-          year: year.trim(),
+          year: year.trim() || new Date().getFullYear().toString(),
           description: description.trim(),
-          photoBlob,
+          photoBlob: photoBlob,
         });
       } else {
         await memoryStorage.addMemory({
           title: title.trim(),
-          year: year.trim(),
+          year: year.trim() || new Date().getFullYear().toString(),
           description: description.trim(),
-          photoBlob,
-          personIds: [],
+          photoBlob: photoBlob,
         });
       }
-
+      
       setShowToast(true);
       setTimeout(() => {
         setIsSaving(false);
         onClose();
-      }, 1000);
-      
+      }, 500);
     } catch (err) {
       console.error(err);
-      setErrorMsg("Could not save memory. Please try again.");
+      setErrorMsg("Something went wrong while saving.");
       setIsSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!existingMemory?.id) return;
+    if (!existingMemory || !existingMemory.id) return;
+    
     setIsSaving(true);
     try {
       await memoryStorage.deleteMemory(existingMemory.id);
@@ -151,7 +140,7 @@ export function AddMemoryModal({ isOpen, onClose, existingMemory }: AddMemoryMod
       onClose();
     } catch (err) {
       console.error(err);
-      setErrorMsg("Could not remove memory.");
+      setErrorMsg("Failed to delete memory.");
       setIsSaving(false);
     }
   };
@@ -160,177 +149,173 @@ export function AddMemoryModal({ isOpen, onClose, existingMemory }: AddMemoryMod
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-end justify-center md:items-center">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        {/* Backdrop */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         />
 
+        {/* Modal Window - Compact & Neobrutalist */}
         <motion.div 
-          initial={{ opacity: 0, y: "100%", scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: "100%", scale: 0.98 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="relative w-full max-w-xl bg-smriti-bg md:rounded-[32px] rounded-t-[32px] rounded-b-none p-6 md:p-8 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.2 }}
+          className="relative w-full max-w-md bg-white neo-border neo-shadow p-5 sm:p-6 flex flex-col z-10"
         >
-          <div className="flex items-center justify-between mb-6 border-b border-smriti-border/50 pb-4">
+          {/* Header */}
+          <div className="flex items-center justify-between pb-3 border-b-2 border-[#1a1c1c] mb-4">
             <div>
-              <h2 className="text-2xl font-bold text-smriti-text">
-                {existingMemory ? "Edit Memory" : "Add a new memory"}
+              <h2 className="font-display-lg text-2xl font-black uppercase text-[#1a1c1c] tracking-tight">
+                {existingMemory ? "Edit Memory" : "Add A Special Memory"}
               </h2>
-              <p className="text-sm font-medium text-smriti-muted mt-1">
-                {existingMemory ? "Update this memory's details." : "Preserve a special moment."}
+              <p className="font-body-md text-xs text-[#434655]">
+                Preserve a cherished moment, celebration, or story.
               </p>
             </div>
             <button 
               onClick={onClose}
-              className="p-3 bg-smriti-surface border border-smriti-border rounded-full hover:bg-smriti-primary/10 transition-colors touch-target shrink-0"
+              className="w-8 h-8 bg-white neo-border flex items-center justify-center hover:bg-[#ffe083] transition-colors cursor-pointer shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
               aria-label="Close modal"
             >
-              <X className="w-6 h-6 text-smriti-text" />
+              <X className="w-5 h-5 stroke-[2.5]" />
             </button>
           </div>
 
           {showToast && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-smriti-primary text-white font-bold px-6 py-3 rounded-full shadow-lg flex items-center gap-2 z-50 animate-bounce">
-              ✓ {title.trim()} saved
+            <div className="bg-[#6bff8f] text-[#002109] neo-border font-label-caps text-xs font-bold uppercase p-2 text-center mb-3">
+              ✓ Memory Saved Successfully
             </div>
           )}
 
           {errorMsg && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl mb-6 font-medium text-center">
+            <div className="bg-[#ffdad6] text-[#93000a] neo-border font-bold text-xs p-2.5 mb-3 text-center">
               {errorMsg}
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto pr-2 pb-4 flex flex-col gap-6">
+          <div className="flex flex-col gap-3.5">
             
-            {/* PHOTO SECTION */}
-            <div className="flex flex-col">
+            {/* COMPACT PHOTO SECTION */}
+            <div className="flex items-center gap-4 bg-[#f9f9f8] neo-border p-3">
               <input 
                 type="file"
                 accept="image/*"
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 className="hidden"
+                aria-label="Upload photo"
               />
               
-              <div className="mb-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#ffe083] neo-border shrink-0 flex items-center justify-center overflow-hidden">
                 {photoPreview ? (
-                  <div className="relative w-full h-48 md:h-64 rounded-[24px] overflow-hidden border-2 border-smriti-border shadow-sm">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-                  </div>
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
-                  <div 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full h-48 md:h-64 rounded-[24px] bg-smriti-surface border-2 border-dashed border-smriti-border flex flex-col items-center justify-center cursor-pointer hover:border-smriti-primary/50 transition-colors"
-                  >
-                     <ImagePlus className="w-12 h-12 text-smriti-primary/40 mb-3" />
-                     <span className="text-smriti-text font-bold text-lg">Add a photo</span>
-                     <span className="text-smriti-muted text-sm mt-1">Optional, but recommended</span>
-                  </div>
+                  <ImagePlus className="w-8 h-8 text-[#735c00]" />
                 )}
               </div>
 
-              {photoPreview && (
-                <div className="flex gap-3 justify-center">
+              <div className="flex flex-col gap-1.5 flex-1">
+                <button 
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-3 py-1.5 bg-white neo-border font-label-caps text-xs font-bold uppercase hover:bg-[#ffe083] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <ImagePlus className="w-3.5 h-3.5" />
+                  <span>{photoPreview ? "Change Photo" : "Upload Memory Photo"}</span>
+                </button>
+                {photoPreview && (
                   <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-6 py-3 bg-smriti-surface border border-smriti-border rounded-full font-bold text-smriti-text hover:bg-smriti-primary/10 transition-colors touch-target flex items-center gap-2"
-                  >
-                    <ImagePlus className="w-5 h-5" />
-                    Change photo
-                  </button>
-                  <button 
+                    type="button"
                     onClick={removePhoto}
-                    className="p-3 bg-smriti-surface border border-smriti-border rounded-full font-bold text-red-500 hover:bg-red-50 transition-colors touch-target"
+                    className="px-3 py-1 bg-[#ffdad6] text-[#ba1a1a] neo-border font-label-caps text-[10px] font-bold uppercase hover:bg-[#ffb4ab] transition-colors flex items-center justify-center gap-1 cursor-pointer"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-3 h-3" />
+                    <span>Remove Photo</span>
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
-            {/* DETAILS SECTION */}
+            {/* TITLE & YEAR ROW */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="col-span-2">
+                <label htmlFor="memory-title" className="block font-label-caps text-xs font-bold uppercase text-[#1a1c1c] mb-1">
+                  Title
+                </label>
+                <input 
+                  id="memory-title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="E.g. Diwali in Jaipur"
+                  className="w-full h-11 px-3 bg-white neo-border-2 font-body-md text-base text-[#1a1c1c] focus:outline-none focus:bg-[#dbe1ff]/20 focus:border-[#2563eb]"
+                />
+              </div>
+              <div>
+                <label htmlFor="memory-year" className="block font-label-caps text-xs font-bold uppercase text-[#1a1c1c] mb-1">
+                  Year
+                </label>
+                <input 
+                  id="memory-year"
+                  type="text"
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                  placeholder="1995"
+                  className="w-full h-11 px-3 bg-white neo-border-2 font-body-md text-base text-[#1a1c1c] focus:outline-none focus:bg-[#dbe1ff]/20 focus:border-[#2563eb]"
+                />
+              </div>
+            </div>
+
+            {/* DESCRIPTION */}
             <div>
-              <label htmlFor="memory-title" className="block text-lg font-bold text-smriti-text mb-2">
-                Memory Title
+              <label htmlFor="memory-desc" className="block font-label-caps text-xs font-bold uppercase text-[#1a1c1c] mb-1">
+                Short Note / Memory Detail
               </label>
-              <input 
-                id="memory-title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="E.g., Diwali at home"
-                className="w-full p-4 md:p-5 bg-smriti-surface border-2 border-smriti-border rounded-2xl text-xl text-smriti-text focus:border-smriti-primary focus:ring-4 focus:ring-smriti-primary/10 outline-none transition-all touch-target"
+              <textarea 
+                id="memory-desc"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What happened on this day? Who was there?"
+                rows={2}
+                className="w-full p-2.5 bg-white neo-border-2 font-body-md text-sm text-[#1a1c1c] focus:outline-none focus:border-[#2563eb] resize-none"
               />
             </div>
 
-            <div>
-              <label htmlFor="memory-year" className="block text-lg font-bold text-smriti-text mb-2">
-                Year
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-smriti-muted" />
-                <input 
-                  id="memory-year"
-                  type="number"
-                  value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                  placeholder="2023"
-                  className="w-full p-4 pl-14 md:p-5 md:pl-16 bg-smriti-surface border-2 border-smriti-border rounded-2xl text-xl text-smriti-text focus:border-smriti-primary focus:ring-4 focus:ring-smriti-primary/10 outline-none transition-all touch-target"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="memory-desc" className="block text-lg font-bold text-smriti-text mb-2">
-                Description (Optional)
-              </label>
-              <div className="relative">
-                <FileText className="absolute left-4 top-5 w-6 h-6 text-smriti-muted" />
-                <textarea 
-                  id="memory-desc"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="A few words about this memory..."
-                  rows={3}
-                  className="w-full p-4 pl-14 md:p-5 md:pl-16 bg-smriti-surface border-2 border-smriti-border rounded-2xl text-lg text-smriti-text focus:border-smriti-primary focus:ring-4 focus:ring-smriti-primary/10 outline-none transition-all touch-target resize-none"
-                />
-              </div>
-            </div>
-
-            {/* DELETE SECTION (IF EDITING) */}
+            {/* DELETE OPTION (IF EDITING) */}
             {existingMemory && (
-              <div className="pt-4 border-t border-smriti-border/50">
+              <div className="pt-2 border-t border-[#1a1c1c]">
                 {!showDeleteConfirm ? (
                   <button 
+                    type="button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="w-full py-4 text-red-600 font-bold text-lg rounded-2xl hover:bg-red-50 transition-colors touch-target"
+                    className="w-full py-2 bg-[#ffdad6] text-[#ba1a1a] neo-border font-label-caps text-xs font-bold uppercase hover:bg-[#ffb4ab] transition-colors cursor-pointer"
                   >
-                    Remove this memory
+                    Delete Memory
                   </button>
                 ) : (
-                  <div className="bg-red-50 border border-red-200 p-6 rounded-3xl text-center">
-                    <p className="text-red-800 font-bold text-lg mb-2">Remove memory?</p>
-                    <p className="text-red-700/80 mb-6 font-medium">This will remove this memory forever.</p>
-                    <div className="flex gap-4">
+                  <div className="bg-[#ffdad6] neo-border p-3 text-center">
+                    <p className="font-bold text-xs text-[#93000a] mb-2">Delete this memory?</p>
+                    <div className="flex gap-2 justify-center">
                       <button 
+                        type="button"
                         onClick={() => setShowDeleteConfirm(false)}
-                        className="flex-1 py-4 bg-white text-smriti-text font-bold rounded-full border border-smriti-border touch-target"
+                        className="px-4 py-1.5 bg-white neo-border font-label-caps text-xs font-bold uppercase"
                       >
                         Keep
                       </button>
                       <button 
+                        type="button"
                         onClick={handleDelete}
                         disabled={isSaving}
-                        className="flex-1 py-4 bg-red-600 text-white font-bold rounded-full touch-target hover:bg-red-700 disabled:opacity-50"
+                        className="px-4 py-1.5 bg-[#ba1a1a] text-white neo-border font-label-caps text-xs font-bold uppercase"
                       >
-                        {isSaving ? "Removing..." : "Remove"}
+                        {isSaving ? "Deleting..." : "Confirm Delete"}
                       </button>
                     </div>
                   </div>
@@ -340,22 +325,26 @@ export function AddMemoryModal({ isOpen, onClose, existingMemory }: AddMemoryMod
             
           </div>
 
-          <div className="flex gap-4 pt-6 border-t border-smriti-border/50 mt-auto bg-smriti-bg">
+          {/* ACTION BUTTONS */}
+          <div className="flex gap-3 pt-4 border-t-2 border-[#1a1c1c] mt-4">
             <button 
+              type="button"
               onClick={onClose}
               disabled={isSaving}
-              className="flex-1 py-4 bg-smriti-surface text-smriti-text font-bold text-lg rounded-full border-2 border-smriti-border hover:bg-smriti-border/30 transition-colors touch-target disabled:opacity-50"
+              className="flex-1 h-12 bg-white text-[#1a1c1c] neo-border font-headline-lg text-sm uppercase font-black hover:bg-[#f4f4f3] transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button 
+              type="button"
               onClick={handleSave}
               disabled={isSaving || showDeleteConfirm}
-              className="flex-1 py-4 bg-smriti-primary text-white font-bold text-lg rounded-full shadow-md hover:scale-[1.02] active:scale-95 transition-all touch-target disabled:opacity-50 disabled:scale-100"
+              className="flex-1 h-12 bg-[#2563eb] text-white neo-border shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[1px] hover:translate-x-[1px] active:translate-y-[3px] active:translate-x-[3px] active:shadow-none font-headline-lg text-sm uppercase font-black tracking-wider transition-all cursor-pointer disabled:opacity-50"
             >
               {isSaving ? "Saving..." : (existingMemory ? "Save Changes" : "Save Memory")}
             </button>
           </div>
+
         </motion.div>
       </div>
     </AnimatePresence>

@@ -7,9 +7,10 @@ import { GameCompletion } from "./GameCompletion";
 import { TetrisBoard } from "./TetrisBoard";
 import { TetrisControls } from "./TetrisControls";
 import { useInterval } from "@/hooks/useInterval";
-import { motion } from "framer-motion";
 import { db } from "@/lib/db/dexie";
 import { useAuth } from "@/hooks/useAuth";
+import { ArrowLeft, RotateCcw } from "lucide-react";
+import Link from "next/link";
 
 // Types
 export type Cell = string | 0;
@@ -23,21 +24,82 @@ interface Tetromino {
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
 
-// SMRITI Tetrominoes
+// Standard Tetris NxN bounding boxes for perfect rotation geometry
 const TETROMINOES: { [key: string]: Tetromino } = {
-  I: { shape: [[1, 1, 1, 1]], color: "bg-smriti-primary" },
-  J: { shape: [[1, 0, 0], [1, 1, 1]], color: "bg-smriti-secondary" },
-  L: { shape: [[0, 0, 1], [1, 1, 1]], color: "bg-smriti-accent" },
-  O: { shape: [[1, 1], [1, 1]], color: "bg-[#eab308]" }, // Yellow-ish
-  S: { shape: [[0, 1, 1], [1, 1, 0]], color: "bg-[#22c55e]" }, // Green
-  T: { shape: [[0, 1, 0], [1, 1, 1]], color: "bg-[#a855f7]" }, // Purple
-  Z: { shape: [[1, 1, 0], [0, 1, 1]], color: "bg-[#ef4444]" }  // Red
+  I: {
+    shape: [
+      [0, 0, 0, 0],
+      [1, 1, 1, 1],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+    ],
+    color: "bg-[#2563eb]"
+  },
+  J: {
+    shape: [
+      [1, 0, 0],
+      [1, 1, 1],
+      [0, 0, 0],
+    ],
+    color: "bg-[#795548]"
+  },
+  L: {
+    shape: [
+      [0, 0, 1],
+      [1, 1, 1],
+      [0, 0, 0],
+    ],
+    color: "bg-[#ffe083]"
+  },
+  O: {
+    shape: [
+      [1, 1],
+      [1, 1],
+    ],
+    color: "bg-[#ffb4ab]"
+  },
+  S: {
+    shape: [
+      [0, 1, 1],
+      [1, 1, 0],
+      [0, 0, 0],
+    ],
+    color: "bg-[#6bff8f]"
+  },
+  T: {
+    shape: [
+      [0, 1, 0],
+      [1, 1, 1],
+      [0, 0, 0],
+    ],
+    color: "bg-[#dbe1ff]"
+  },
+  Z: {
+    shape: [
+      [1, 1, 0],
+      [0, 1, 1],
+      [0, 0, 0],
+    ],
+    color: "bg-[#ba1a1a]"
+  }
 };
 
 const randomTetromino = () => {
   const keys = Object.keys(TETROMINOES);
   const randKey = keys[Math.floor(Math.random() * keys.length)];
   return TETROMINOES[randKey];
+};
+
+// True 90-degree clockwise matrix rotation function
+const rotateMatrix = (matrix: number[][]): number[][] => {
+  const N = matrix.length;
+  const result: number[][] = Array.from({ length: N }, () => Array(N).fill(0));
+  for (let r = 0; r < N; r++) {
+    for (let c = 0; c < N; c++) {
+      result[c][N - 1 - r] = matrix[r][c];
+    }
+  }
+  return result;
 };
 
 const createEmptyBoard = () =>
@@ -58,8 +120,7 @@ export function TetrisActivity() {
   const [lines, setLines] = useState(0);
 
   // Elder-friendly constants
-  const NORMAL_DROP_TIME = 800; // Calm, slow pace
-  const FAST_DROP_TIME = 100; // Still reasonable when holding down
+  const NORMAL_DROP_TIME = 850; // Calm, slow pace
 
   const startGame = () => {
     setBoard(createEmptyBoard());
@@ -79,23 +140,22 @@ export function TetrisActivity() {
   }, []);
 
   const checkCollision = (
-    playerState: { pos: { x: number; y: number }; tetromino: number[][] },
-    boardState: Cell[][],
-    moveX: number,
-    moveY: number
+    playerPos: { x: number; y: number },
+    pieceShape: number[][]
   ) => {
-    for (let y = 0; y < playerState.tetromino.length; y += 1) {
-      for (let x = 0; x < playerState.tetromino[y].length; x += 1) {
-        // Check that we're on an actual Tetromino cell
-        if (playerState.tetromino[y][x] !== 0) {
-          if (
-            // Check movement is inside game area bounds (y)
-            !boardState[y + playerState.pos.y + moveY] ||
-            // Check movement is inside game area bounds (x)
-            boardState[y + playerState.pos.y + moveY][x + playerState.pos.x + moveX] === undefined ||
-            // Check that cell isn't set to clear
-            boardState[y + playerState.pos.y + moveY][x + playerState.pos.x + moveX] !== 0
-          ) {
+    for (let y = 0; y < pieceShape.length; y += 1) {
+      for (let x = 0; x < pieceShape[y].length; x += 1) {
+        if (pieceShape[y][x] !== 0) {
+          const boardX = x + playerPos.x;
+          const boardY = y + playerPos.y;
+
+          // Check walls
+          if (boardX < 0 || boardX >= BOARD_WIDTH || boardY >= BOARD_HEIGHT) {
+            return true;
+          }
+
+          // Check collision with locked pieces (only if inside board from top)
+          if (boardY >= 0 && board[boardY][boardX] !== 0) {
             return true;
           }
         }
@@ -104,138 +164,115 @@ export function TetrisActivity() {
     return false;
   };
 
-  const updatePlayerPos = ({ x, y, collided }: { x: number; y: number; collided: boolean }) => {
-    setPlayer(prev => ({
-      ...prev,
-      pos: { x: (prev.pos.x += x), y: (prev.pos.y += y) },
-    }));
-
-    if (collided) {
-      setDropTime(null); // Pause drop while locking
-      
-      setBoard(prev => {
-        const newBoard = prev.map(row => [...row]);
-        player.tetromino.forEach((row, y) => {
-          row.forEach((value, x) => {
-            if (value !== 0) {
-              const bY = y + player.pos.y;
-              const bX = x + player.pos.x;
-              // Add bounds check just in case
-              if (bY >= 0 && bY < BOARD_HEIGHT && bX >= 0 && bX < BOARD_WIDTH) {
-                  newBoard[bY][bX] = player.color;
-              }
-            }
-          });
-        });
-
-        // Clear lines
-        const sweepLines = (board: Cell[][]) => {
-          return board.reduce((acc: Cell[][], row) => {
-            // If row contains no 0s, it's a full line
-            if (row.findIndex(cell => cell === 0) === -1) {
-              setLines(prev => prev + 1);
-              acc.unshift(new Array(BOARD_WIDTH).fill(0));
-              return acc;
-            }
-            acc.push(row);
-            return acc;
-          }, []);
-        };
-
-        const clearedBoard = sweepLines(newBoard);
-        
-        // Elder-friendly: Instead of game over, if board is full (blocks in top row), 
-        // we just celebrate their effort and end the session gently.
-        let boardFull = false;
-        for (let i = 0; i < BOARD_WIDTH; i++) {
-          if (clearedBoard[0][i] !== 0) {
-            boardFull = true;
-            break;
-          }
-        }
-
-        if (boardFull) {
-          handleGameCompletion();
-        } else {
-          resetPlayer();
-          setDropTime(NORMAL_DROP_TIME);
-        }
-        
-        return clearedBoard;
-      });
-    }
-  };
-
   const movePlayer = (dir: number) => {
-    if (!checkCollision(player, board, dir, 0)) {
-      updatePlayerPos({ x: dir, y: 0, collided: false });
-    }
-  };
-
-  const drop = () => {
-    if (!checkCollision(player, board, 0, 1)) {
-      updatePlayerPos({ x: 0, y: 1, collided: false });
-    } else {
-      updatePlayerPos({ x: 0, y: 0, collided: true });
+    if (!checkCollision({ x: player.pos.x + dir, y: player.pos.y }, player.tetromino)) {
+      setPlayer(prev => ({
+        ...prev,
+        pos: { ...prev.pos, x: prev.pos.x + dir },
+      }));
     }
   };
 
   const rotatePlayer = () => {
-    const clonedPlayer = JSON.parse(JSON.stringify(player));
-    // Transpose and reverse
-    clonedPlayer.tetromino = clonedPlayer.tetromino[0].map((_: any, index: number) =>
-      clonedPlayer.tetromino.map((row: any) => row[index]).reverse()
-    );
+    // Square 'O' does not need rotation
+    if (player.tetromino.length === 2) return;
 
-    // Wall kick logic (basic)
-    const pos = clonedPlayer.pos.x;
-    let offset = 1;
-    while (checkCollision(clonedPlayer, board, 0, 0)) {
-      clonedPlayer.pos.x += offset;
-      offset = -(offset + (offset > 0 ? 1 : -1));
-      if (offset > clonedPlayer.tetromino[0].length) {
-        clonedPlayer.pos.x = pos; // Revert
+    const rotatedShape = rotateMatrix(player.tetromino);
+    const originalX = player.pos.x;
+    
+    // Wall kick offsets: try current, +1, -1, +2, -2
+    const kicks = [0, 1, -1, 2, -2];
+    for (const offset of kicks) {
+      if (!checkCollision({ x: originalX + offset, y: player.pos.y }, rotatedShape)) {
+        setPlayer(prev => ({
+          ...prev,
+          pos: { ...prev.pos, x: originalX + offset },
+          tetromino: rotatedShape,
+        }));
         return;
       }
     }
-    setPlayer(clonedPlayer);
   };
 
-  // Keyboard controls
-  const move = useCallback((e: KeyboardEvent) => {
-    if (gameState !== "playing") return;
-    if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      movePlayer(-1);
-    } else if (e.key === "ArrowRight") {
-      e.preventDefault();
-      movePlayer(1);
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      drop();
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      rotatePlayer();
-    }
-  }, [gameState, player, board]);
+  const sweepRows = (newBoard: Cell[][]) => {
+    let rowsCleared = 0;
+    const sweptBoard = newBoard.reduce((ack, row) => {
+      if (row.indexOf(0) === -1) {
+        rowsCleared += 1;
+        ack.unshift(new Array(BOARD_WIDTH).fill(0));
+        return ack;
+      }
+      ack.push(row);
+      return ack;
+    }, [] as Cell[][]);
 
-  useEffect(() => {
-    document.addEventListener("keydown", move);
-    return () => {
-      document.removeEventListener("keydown", move);
-    };
-  }, [move]);
+    if (rowsCleared > 0) {
+      setLines(prev => prev + rowsCleared);
+    }
+    return sweptBoard;
+  };
+
+  const drop = () => {
+    if (!checkCollision({ x: player.pos.x, y: player.pos.y + 1 }, player.tetromino)) {
+      setPlayer(prev => ({
+        ...prev,
+        pos: { ...prev.pos, y: prev.pos.y + 1 },
+      }));
+    } else {
+      // Check if locked near top (game over)
+      if (player.pos.y <= 0) {
+        setGameState("completed");
+        setDropTime(null);
+        handleGameComplete();
+        return;
+      }
+      const newBoard = board.map(row => [...row]);
+      player.tetromino.forEach((row, y) => {
+        row.forEach((value, x) => {
+          if (value !== 0) {
+            const bY = y + player.pos.y;
+            const bX = x + player.pos.x;
+            if (bY >= 0 && bY < BOARD_HEIGHT && bX >= 0 && bX < BOARD_WIDTH) {
+              newBoard[bY][bX] = player.color;
+            }
+          }
+        });
+      });
+      setBoard(sweepRows(newBoard));
+      resetPlayer();
+    }
+  };
 
   useInterval(() => {
     drop();
   }, dropTime);
 
-  const handleGameCompletion = async () => {
-    setGameState("completed");
-    setDropTime(null);
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (gameState !== "playing") return;
+      if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") {
+        e.preventDefault();
+        movePlayer(-1);
+      } else if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") {
+        e.preventDefault();
+        movePlayer(1);
+      } else if (e.key === "ArrowDown" || e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        drop();
+      } else if (e.key === "ArrowUp" || e.key.toLowerCase() === "w" || e.key === " ") {
+        e.preventDefault();
+        rotatePlayer();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [gameState, player, board]);
+
+  const handleGameComplete = async () => {
     try {
       await db.gameSessions.add({
-        elderId: 1, // MVP default
+        elderId: 1,
         gameType: "tetris",
         region: profile?.region || "unknown",
         difficulty: 1,
@@ -250,8 +287,6 @@ export function TetrisActivity() {
     }
   };
 
-  // Render logic
-  // We composite the player on top of the board for rendering only
   const renderBoard = () => {
     const displayBoard = board.map(row => [...row]);
     if (gameState === "playing") {
@@ -279,28 +314,57 @@ export function TetrisActivity() {
   }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-      className="w-full max-w-5xl mx-auto px-4 py-2 md:py-6 flex flex-col items-center"
-    >
-      <div className="w-full max-w-[300px] flex justify-between items-center mb-4 px-2">
-        <span className="text-xl font-bold text-smriti-text">
-          {t("games.tetris.title") || "Tetris"}
-        </span>
-        <span className="text-sm font-bold text-smriti-primary bg-smriti-primary/10 px-4 py-2 rounded-full">
-          Lines: {lines}
-        </span>
+    <div className="w-full max-w-2xl mx-auto py-2 flex flex-col items-center">
+      
+      {/* Top Bar Back Button */}
+      <div className="w-full flex items-center justify-between mb-3 px-2">
+        <Link 
+          href="/activities"
+          className="inline-flex items-center gap-2 bg-white neo-border px-3.5 py-1.5 font-label-caps text-xs uppercase font-bold text-[#1a1c1c] hover:bg-[#f4f4f3] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+        >
+          <ArrowLeft className="w-4 h-4 stroke-[3]" /> Back to Activities
+        </Link>
+
+        <button
+          onClick={startGame}
+          className="inline-flex items-center gap-1.5 bg-white neo-border px-3 py-1.5 font-label-caps text-xs uppercase font-bold text-[#1a1c1c] hover:bg-[#f4f4f3] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer"
+        >
+          <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" /> Restart
+        </button>
       </div>
 
-      <TetrisBoard board={renderBoard()} />
+      {/* Screen-Fitted 2-Column Game Area */}
+      <div className="flex flex-col sm:flex-row items-center sm:items-start justify-center gap-4 sm:gap-6 w-full px-2">
+        
+        {/* Left Column: Tetris Board */}
+        <div className="flex flex-col items-center">
+          <TetrisBoard board={renderBoard()} />
+        </div>
 
-      <TetrisControls 
-        moveLeft={() => movePlayer(-1)}
-        moveRight={() => movePlayer(1)}
-        moveDown={() => drop()}
-        rotate={() => rotatePlayer()}
-        disabled={gameState !== "playing"}
-      />
-    </motion.div>
+        {/* Right Column: Score Banner + Controls + Touchpad */}
+        <div className="flex flex-col items-center sm:items-start gap-3 w-full max-w-[280px]">
+          
+          {/* Status Header */}
+          <div className="w-full bg-[#2563eb] text-white neo-border neo-shadow-sm p-3 flex justify-between items-center">
+            <span className="font-display-lg text-base font-black uppercase tracking-tight">
+              {t("games.tetris.title") || "Mind Puzzle"}
+            </span>
+            <span className="bg-[#6bff8f] text-[#002109] font-label-caps text-xs font-bold px-2.5 py-0.5 neo-border uppercase">
+              Lines: {lines}
+            </span>
+          </div>
+
+          {/* Controls & Touchpad */}
+          <TetrisControls 
+            moveLeft={() => movePlayer(-1)}
+            moveRight={() => movePlayer(1)}
+            moveDown={() => drop()}
+            rotate={() => rotatePlayer()}
+            disabled={gameState !== "playing"}
+          />
+        </div>
+
+      </div>
+    </div>
   );
 }

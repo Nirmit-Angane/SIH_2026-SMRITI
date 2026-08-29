@@ -1,19 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { CheckCircle2, Circle, Volume2 } from "lucide-react";
+import { Pill, Footprints, Volume2, Check, Clock } from "lucide-react";
 import { notificationService } from "@/lib/notifications/notificationService";
 import { useLanguage } from "@/components/LanguageProvider";
 
-interface TimelineItemData {
+interface ScheduleCard {
   id: string;
   time: string;
-  type: "medicine" | "water" | "story" | "family";
-  titleEn: string;
-  titleHi: string;
-  speechEn: string;
-  speechHi: string;
+  title: string;
+  desc: string;
+  tagColor: string;
+  tagText: string;
+  icon: typeof Pill;
+  iconColor: string;
   completed: boolean;
 }
 
@@ -21,162 +21,134 @@ export function DailyTimeline() {
   const { language } = useLanguage();
   const isHindi = language === "hi";
 
-  const [items, setItems] = useState<TimelineItemData[]>([
+  const [cards, setCards] = useState<ScheduleCard[]>([
     {
       id: "med-1",
-      time: "09:00 AM",
-      type: "medicine",
-      titleEn: "Morning Blood Pressure Medicine",
-      titleHi: "सुबह की दवाई (BP Medication)",
-      speechEn: "Morning blood pressure medicine has been marked as taken.",
-      speechHi: "सुबह की दवाई ली जा चुकी है।",
+      time: "8:00 AM",
+      title: isHindi ? "सुबह की दवाई" : "Morning Medicine",
+      desc: isHindi ? "नाश्ते के साथ लें।" : "Take with breakfast.",
+      tagColor: "bg-[#00FF41] text-[#000000]",
+      tagText: "8:00 AM",
+      icon: Pill,
+      iconColor: "text-[#004ac6]",
       completed: true,
     },
     {
-      id: "water-1",
-      time: "11:30 AM",
-      type: "water",
-      titleEn: "Fresh Glass of Water",
-      titleHi: "ताज़ा पानी का गिलास",
-      speechEn: "Please take a sip of fresh water.",
-      speechHi: "कृपया एक गिलास ताज़ा पानी पी लीजिए।",
-      completed: false,
-    },
-    {
-      id: "story-1",
-      time: "03:30 PM",
-      type: "story",
-      titleEn: "Story Time with SMRITI",
-      titleHi: "SMRITI के साथ कहानी का समय",
-      speechEn: "Time for a relaxing afternoon story with SMRITI.",
-      speechHi: "दोपहर की शांत कहानी सुनने का समय।",
-      completed: false,
-    },
-    {
-      id: "med-2",
-      time: "08:30 PM",
-      type: "medicine",
-      titleEn: "Evening Multivitamin & Care",
-      titleHi: "रात की दवाई व देखभाल",
-      speechEn: "Time to take your evening care medication after dinner.",
-      speechHi: "रात के खाने के बाद की दवाई लेने का समय।",
+      id: "walk-1",
+      time: "10:30 AM",
+      title: isHindi ? "सुबह की सैर" : "Daily Walk",
+      desc: isHindi ? "पार्क में 20 मिनट।" : "20 mins in the park.",
+      tagColor: "bg-[#e2e2e2] text-[#1a1c1c]",
+      tagText: "10:30 AM",
+      icon: Footprints,
+      iconColor: "text-[#006e2f]",
       completed: false,
     },
   ]);
 
-  const toggleItem = (id: string) => {
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          const nextState = !item.completed;
-          if (nextState) {
-            const title = isHindi ? item.titleHi : item.titleEn;
-            const completionMsg = isHindi
-              ? `${title} पूरा हो गया। बहुत बढ़िया!`
-              : `${title} completed. Well done!`;
-            notificationService.speakAnnouncement(completionMsg, language);
-          }
-          return { ...item, completed: nextState };
+  const toggleCard = (id: string) => {
+    setCards((prev) =>
+      prev.map((c) => {
+        if (c.id === id) {
+          const next = !c.completed;
+          const msg = next 
+            ? (isHindi ? `${c.title} पूरा हुआ। बहुत बढ़िया!` : `${c.title} completed. Well done!`)
+            : (isHindi ? `${c.title} बाकी है।` : `${c.title} marked pending.`);
+          notificationService.speakAnnouncement(msg, language);
+          return { ...c, completed: next };
         }
-        return item;
+        return c;
       })
     );
   };
 
   const handleReadSchedule = () => {
-    const pending = items.filter((i) => !i.completed);
+    const pending = cards.filter((i) => !i.completed);
     if (pending.length === 0) {
       const allDone = isHindi
         ? "आज के सभी काम पूरे हो चुके हैं। आप बहुत अच्छा कर रहे हैं!"
         : "All daily tasks are complete for today. You are doing wonderful!";
       notificationService.speakAnnouncement(allDone, language);
     } else {
-      const pendingNames = pending.map((p) => (isHindi ? p.titleHi : p.titleEn)).join(", ");
+      const pendingNames = pending.map((p) => p.title).join(", ");
       const summary = isHindi
-        ? `आज आपके मुख्य काम हैं: ${pendingNames}।`
+        ? `आज आपके बाकी काम हैं: ${pendingNames}।`
         : `Your remaining activities today are: ${pendingNames}.`;
       notificationService.speakAnnouncement(summary, language);
     }
   };
 
   return (
-    <motion.section 
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-      className="w-full max-w-2xl mx-auto px-4 mb-12"
-    >
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl md:text-2xl font-bold text-smriti-text">
-          {isHindi ? "आज की दिनचर्या" : "Today's Schedule & Reminders"}
-        </h3>
-        
-        <button
-          onClick={handleReadSchedule}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-smriti-primary/10 hover:bg-smriti-primary/20 text-smriti-primary text-sm font-bold transition-colors"
-        >
-          <Volume2 className="w-4 h-4" />
-          <span>{isHindi ? "सुनाएं (Read Aloud)" : "Read Aloud"}</span>
-        </button>
-      </div>
-      
-      <div className="flex flex-col gap-3">
-        {items.map((item) => {
-          const title = isHindi ? item.titleHi : item.titleEn;
-          const speech = isHindi ? item.speechHi : item.speechEn;
-
+    <div className="w-full mb-12">
+      {/* Bento grid cards (Medicine & Walk) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {cards.map((card) => {
+          const Icon = card.icon;
           return (
-            <div 
-              key={item.id} 
-              onClick={() => toggleItem(item.id)}
-              className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer touch-target ${
-                item.completed 
-                  ? "bg-white/60 border-emerald-200 text-smriti-text/60" 
-                  : "bg-white border-smriti-border text-smriti-text shadow-sm hover:border-smriti-primary/40"
-              }`}
+            <div
+              key={card.id}
+              className="bg-[#eeeeed] neo-border neo-shadow p-6 sm:p-8 flex flex-col items-start relative overflow-hidden transition-all hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
             >
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="shrink-0">
-                  {item.completed ? (
-                    <CheckCircle2 className="w-7 h-7 text-emerald-600 fill-emerald-100" />
-                  ) : (
-                    <Circle className="w-7 h-7 text-smriti-muted hover:text-smriti-primary transition-colors" />
-                  )}
-                </div>
-                
-                <div className="min-w-0">
-                  <p className={`text-base md:text-lg font-bold truncate ${item.completed ? 'line-through text-smriti-muted' : 'text-smriti-text'}`}>
-                    {title}
-                  </p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs font-bold uppercase tracking-wider text-smriti-primary bg-smriti-primary/10 px-2 py-0.5 rounded-md">
-                      {item.time}
-                    </span>
-                    <span className="text-xs text-smriti-muted">
-                      {item.type === "medicine" 
-                        ? (isHindi ? "💊 दवाई" : "💊 Medicine") 
-                        : item.type === "water" 
-                        ? (isHindi ? "💧 पानी" : "💧 Water") 
-                        : (isHindi ? "📖 दिनचर्या" : "📖 Routine")}
-                    </span>
-                  </div>
-                </div>
+              {/* Corner Tag */}
+              <div className={`absolute top-0 right-0 ${card.completed ? 'bg-[#00FF41] text-[#000000]' : card.tagColor} px-3.5 py-1 border-b-[4px] border-l-[4px] border-[#1a1c1c] font-label-caps text-xs font-bold uppercase`}>
+                {card.completed ? "Done" : card.tagText}
               </div>
 
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  notificationService.speakAnnouncement(speech, language);
-                }}
-                className="w-10 h-10 rounded-full hover:bg-smriti-primary/10 flex items-center justify-center text-smriti-primary shrink-0 transition-colors"
-                title={isHindi ? "आवाज सुनें" : "Listen to reminder"}
-              >
-                <Volume2 className="w-5 h-5" />
-              </button>
+              <div className={`${card.iconColor} mb-4`}>
+                <Icon className="w-12 h-12 stroke-[2.5]" />
+              </div>
+
+              <h3 className="font-headline-lg text-2xl font-black text-[#1a1c1c] uppercase mb-1">
+                {card.title}
+              </h3>
+              <p className="font-body-md text-base text-[#434655] mb-6">
+                {card.desc}
+              </p>
+
+              <div className="mt-auto w-full flex gap-2">
+                <button
+                  onClick={() => toggleCard(card.id)}
+                  className={`flex-1 ${
+                    card.completed 
+                      ? "bg-[#6bff8f] text-[#002109]" 
+                      : "bg-[#004ac6] text-white"
+                  } neo-border shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all py-3 px-6 font-label-caps uppercase font-bold text-center flex items-center justify-center gap-2`}
+                >
+                  {card.completed ? <Check className="w-4 h-4" /> : null}
+                  <span>{card.completed ? "Completed" : "Mark Done"}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    const speech = `${card.title}. ${card.desc}`;
+                    notificationService.speakAnnouncement(speech, language);
+                  }}
+                  className="p-3 bg-white text-[#1a1c1c] neo-border shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] transition-all"
+                  title="Read Aloud"
+                >
+                  <Volume2 className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           );
         })}
       </div>
-    </motion.section>
+
+      {/* Voice Schedule Bar */}
+      <div className="flex items-center justify-between p-4 neo-border bg-white neo-shadow-sm">
+        <div className="flex items-center gap-3">
+          <Clock className="w-5 h-5 text-[#004ac6]" />
+          <span className="font-label-bold text-sm uppercase text-[#1a1c1c]">
+            {isHindi ? "दैनिक दिनचर्या और रिमाइंडर" : "Daily Schedule Summary"}
+          </span>
+        </div>
+        <button
+          onClick={handleReadSchedule}
+          className="flex items-center gap-2 bg-[#ffe083] text-[#231b00] px-4 py-2 neo-border shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-label-bold text-xs uppercase hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+        >
+          <Volume2 className="w-4 h-4" />
+          <span>{isHindi ? "सुनाएं" : "Read Aloud"}</span>
+        </button>
+      </div>
+    </div>
   );
 }

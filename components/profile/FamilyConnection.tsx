@@ -1,37 +1,46 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db/dexie";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Users } from "lucide-react";
 
 export function FamilyConnection() {
   const familyCount = useLiveQuery(() => db.familyMembers.count()) || 0;
+  const memoryCount = useLiveQuery(() => db.memories.count()) || 0;
 
   return (
-    <motion.section 
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-      className="w-full max-w-2xl mx-auto px-4 mb-8"
-    >
-      <h2 className="text-xl font-bold text-smriti-text mb-4">Family & Care</h2>
+    <section className="w-full mb-6">
+      <div className="pb-2 mb-3 border-b-2 border-[#1a1c1c]">
+        <h2 className="font-display-lg text-xl sm:text-2xl font-black uppercase text-[#1a1c1c]">
+          Family & Memory Circle
+        </h2>
+      </div>
       
       <Link 
         href="/family"
-        className="block bg-smriti-surface border border-smriti-border rounded-3xl p-6 hover:border-smriti-primary/50 transition-colors shadow-sm group touch-target"
+        className="block bg-[#ffe083] neo-border neo-shadow p-5 hover:translate-x-[1px] hover:translate-y-[1px] transition-all group"
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="block font-bold text-lg text-smriti-text group-hover:text-smriti-primary transition-colors">
-              {familyCount === 1 ? "1 person added" : `${familyCount} people added`}
-            </span>
-            <span className="block text-sm text-smriti-muted mt-1">Manage familiar faces and memories</span>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 bg-white neo-border flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <Users className="w-6 h-6 text-[#231b00]" />
+            </div>
+            <div>
+              <span className="block font-display-lg text-base sm:text-lg font-black uppercase text-[#231b00] group-hover:text-[#004ac6] transition-colors">
+                {familyCount} Faces • {memoryCount} Memories
+              </span>
+              <span className="block font-body-md text-xs sm:text-sm text-[#4e3d00]">
+                Manage family photos, stories, and voice memories
+              </span>
+            </div>
           </div>
-          <ArrowRight className="w-6 h-6 text-smriti-primary opacity-50 group-hover:opacity-100 transition-opacity group-hover:translate-x-1" />
+          
+          <div className="w-9 h-9 bg-white neo-border flex items-center justify-center shrink-0 group-hover:bg-[#2563eb] group-hover:text-white transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+          </div>
         </div>
       </Link>
-    </motion.section>
+    </section>
   );
 }

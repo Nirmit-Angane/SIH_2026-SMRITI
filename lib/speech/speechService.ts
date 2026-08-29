@@ -54,8 +54,18 @@ class SpeechService {
   async speak(text: string, lang: string = "en"): Promise<void> {
     if (!text || typeof window === "undefined") return;
 
-    const isHindi = lang === "hi" || lang.startsWith("hi");
-    const targetLang = isHindi ? "hi-IN" : "en-US";
+    // Normalize language key to standard TTS locale
+    let targetLang = "en-US";
+    const l = lang.toLowerCase().trim();
+
+    if (l === "hi" || l.startsWith("hi")) targetLang = "hi-IN";
+    else if (l === "bn" || l.startsWith("bn") || l === "bengali") targetLang = "bn-IN";
+    else if (l === "as" || l.startsWith("as") || l === "assamese") targetLang = "as-IN";
+    else if (l === "ne" || l.startsWith("ne") || l === "nepali") targetLang = "ne-NP";
+    else if (l === "mni" || l === "manipuri") targetLang = "bn-IN";
+    else if (l === "trp" || l === "kokborok") targetLang = "bn-IN";
+    else if (l === "kha" || l === "khasi" || l === "lus" || l === "mizo" || l === "nag" || l === "nagamese") targetLang = "en-IN";
+    else if (l === "en" || l.startsWith("en")) targetLang = "en-IN";
 
     // 1. Primary: Web Speech API (Browser & WebViews)
     if ("speechSynthesis" in window) {
@@ -64,19 +74,19 @@ class SpeechService {
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = targetLang;
-        utterance.rate = 0.9;
+        utterance.rate = 0.88;
         utterance.pitch = 1.0;
 
         if (this.voices.length === 0) {
           this.loadVoices();
         }
 
-        // Pick most suitable voice
-        const matchingVoice = this.voices.find((v) =>
-          isHindi
-            ? v.lang.toLowerCase().includes("hi")
-            : v.lang.toLowerCase().includes("en-us") || v.lang.toLowerCase().includes("en")
-        );
+        // Voice selection priority
+        const langPrefix = targetLang.split("-")[0];
+        const matchingVoice = this.voices.find((v) => 
+          v.lang.toLowerCase() === targetLang.toLowerCase() ||
+          v.lang.toLowerCase().startsWith(langPrefix)
+        ) || this.voices.find((v) => v.lang.toLowerCase().includes("in") || v.lang.toLowerCase().includes("en"));
 
         if (matchingVoice) {
           utterance.voice = matchingVoice;

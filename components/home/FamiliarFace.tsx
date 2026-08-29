@@ -1,8 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
-import { UserCircle2, UserPlus, Heart } from "lucide-react";
+import { UserCircle2, UserPlus, Heart, ArrowRight } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, FamilyMember } from "@/lib/db/dexie";
 import { useState, useEffect, useMemo } from "react";
@@ -12,13 +11,11 @@ export function FamiliarFace() {
   const { t } = useLanguage();
   const elderId = 1;
 
-  // Reactively query real family members from IndexedDB
   const familyMembers = useLiveQuery(
     () => db.familyMembers.where({ elderId }).toArray(),
     [elderId]
   );
 
-  // Pick a featured familiar face (rotates daily based on day of month)
   const featuredPerson = useMemo<FamilyMember | null>(() => {
     if (!familyMembers || familyMembers.length === 0) return null;
     const dayOfYear = Math.floor(
@@ -27,7 +24,6 @@ export function FamiliarFace() {
     return familyMembers[dayOfYear % familyMembers.length];
   }, [familyMembers]);
 
-  // Handle blob object URL for photo
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -42,71 +38,59 @@ export function FamiliarFace() {
     }
   }, [featuredPerson]);
 
-  // Loading state
   if (familyMembers === undefined) {
     return (
-      <section className="w-full max-w-2xl mx-auto px-4 mb-12 animate-pulse">
-        <div className="h-6 w-48 bg-smriti-muted/20 rounded-full mb-4" />
-        <div className="h-28 bg-smriti-surface border border-smriti-border rounded-3xl" />
+      <section className="w-full mb-12 animate-pulse">
+        <div className="h-6 w-48 bg-gray-300 mb-4" />
+        <div className="h-28 bg-white neo-border" />
       </section>
     );
   }
 
-  // If no family members have been added yet
   if (!featuredPerson) {
     return (
-      <motion.section 
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-        className="w-full max-w-2xl mx-auto px-4 mb-12"
-      >
-        <h3 className="text-xl font-bold text-smriti-text mb-4">
-          A familiar face for today
+      <section className="w-full mb-12">
+        <h3 className="font-headline-lg text-2xl sm:text-3xl font-black text-[#1a1c1c] uppercase mb-4 border-b-[4px] border-[#1a1c1c] pb-1 inline-block">
+          Care Circle Spotlight
         </h3>
         
         <Link 
           href="/family" 
-          className="block bg-smriti-surface border border-dashed border-smriti-primary/40 rounded-3xl p-6 hover:border-smriti-primary hover:bg-smriti-primary/5 transition-all touch-target group text-center"
+          className="block bg-[#ffe083] neo-border neo-shadow neo-shadow-hover p-6 group text-left transition-all"
         >
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4 text-left">
-              <div className="w-16 h-16 rounded-2xl bg-smriti-primary/10 flex items-center justify-center shrink-0 text-smriti-primary">
-                <Heart className="w-8 h-8 opacity-70 group-hover:scale-110 transition-transform" />
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-white neo-border flex items-center justify-center shrink-0 text-[#231b00]">
+                <Heart className="w-8 h-8 fill-current" />
               </div>
               <div>
-                <h4 className="text-xl font-bold text-smriti-text">No family members added yet</h4>
-                <p className="text-sm text-smriti-muted">Add photos and relations to see familiar faces here</p>
+                <h4 className="font-headline-lg text-xl sm:text-2xl font-black uppercase text-[#231b00]">No family members added yet</h4>
+                <p className="font-body-md text-sm sm:text-base text-[#4e3d00]">Add photos, relations, and voices to see familiar faces here</p>
               </div>
             </div>
             
-            <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-smriti-primary text-white font-bold text-sm shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+            <span className="inline-flex items-center gap-2 px-6 py-3 bg-[#2563eb] text-white neo-border shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-label-caps uppercase text-sm shrink-0">
               <UserPlus className="w-4 h-4" />
               Add Family
             </span>
           </div>
         </Link>
-      </motion.section>
+      </section>
     );
   }
 
   return (
-    <motion.section 
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-      className="w-full max-w-2xl mx-auto px-4 mb-12"
-    >
-      <h3 className="text-xl font-bold text-smriti-text mb-4">
-        A familiar face for today
+    <section className="w-full mb-12">
+      <h3 className="font-headline-lg text-2xl sm:text-3xl font-black text-[#1a1c1c] uppercase mb-4 border-b-[4px] border-[#1a1c1c] pb-1 inline-block">
+        Care Circle Spotlight
       </h3>
       
       <Link 
         href="/family" 
-        className="block bg-smriti-surface border border-smriti-border rounded-3xl p-4 md:p-6 hover:border-smriti-primary/40 hover:bg-smriti-primary/5 transition-colors touch-target group shadow-sm"
+        className="block bg-white neo-border neo-shadow neo-shadow-hover p-6 group transition-all"
       >
-        <div className="flex items-center gap-4 md:gap-6">
-          <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-smriti-primary/10 flex items-center justify-center shrink-0 overflow-hidden border border-smriti-border/50">
+        <div className="flex items-center gap-6">
+          <div className="w-24 h-24 bg-[#dbe1ff] neo-border flex items-center justify-center shrink-0 overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             {photoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img 
@@ -115,24 +99,24 @@ export function FamiliarFace() {
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
             ) : (
-              <UserCircle2 className="w-12 h-12 text-smriti-primary opacity-60" />
+              <UserCircle2 className="w-14 h-14 text-[#00174b]" />
             )}
           </div>
           
           <div className="flex-grow min-w-0">
-            <h4 className="text-2xl font-bold text-smriti-text mb-1 truncate">
+            <h4 className="font-display-lg text-2xl sm:text-3xl font-black uppercase text-[#1a1c1c] mb-1 truncate">
               {featuredPerson.name}
             </h4>
-            <p className="text-lg text-smriti-muted mb-2 truncate">
-              {featuredPerson.relationship}
+            <p className="font-body-md text-base sm:text-lg text-[#434655] mb-2 truncate">
+              <span className="font-bold text-[#004ac6]">{featuredPerson.relationship}</span>
               {featuredPerson.memoryNote ? ` • "${featuredPerson.memoryNote}"` : ""}
             </p>
-            <p className="text-sm font-bold text-smriti-primary uppercase tracking-wider group-hover:underline flex items-center gap-1">
-              See family & memories →
+            <p className="font-label-bold text-sm uppercase text-[#2563eb] flex items-center gap-1 group-hover:underline">
+              View Family Memory Gallery <ArrowRight className="w-4 h-4" />
             </p>
           </div>
         </div>
       </Link>
-    </motion.section>
+    </section>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon, Edit3, Calendar } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, Memory } from "@/lib/db/dexie";
 import { useState, useEffect } from "react";
@@ -11,7 +10,7 @@ interface MemoryCollectionProps {
 }
 
 export function MemoryCollection({ onEditMemory }: MemoryCollectionProps) {
-  const elderId = 1; // Default
+  const elderId = 1;
   const memories = useLiveQuery(() => db.memories.where({ elderId }).reverse().sortBy('year'), [elderId]);
   
   const [objectUrls, setObjectUrls] = useState<Record<number, string>>({});
@@ -36,42 +35,62 @@ export function MemoryCollection({ onEditMemory }: MemoryCollectionProps) {
   if (!memories || memories.length === 0) return null;
 
   return (
-    <motion.section 
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-      className="w-full max-w-4xl mx-auto px-4 mb-16"
-    >
-      <h2 className="text-2xl font-extrabold text-smriti-text mb-6">Memories together</h2>
+    <section className="w-full mb-16">
+      <h2 className="font-headline-lg text-2xl sm:text-3xl font-black text-[#1a1c1c] uppercase border-b-[4px] border-[#1a1c1c] pb-1 mb-6">
+        Preserved Memories
+      </h2>
       
-      <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {memories.map((memory) => (
           <div 
             key={memory.id} 
             onClick={() => onEditMemory(memory)}
-            className="flex flex-col md:flex-row gap-6 p-4 md:p-6 bg-smriti-surface border border-smriti-border rounded-[24px] cursor-pointer hover:border-smriti-primary/50 transition-all group shadow-sm"
+            className="bg-white neo-border neo-shadow flex flex-col cursor-pointer transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group overflow-hidden"
           >
-            <div className="w-full md:w-64 h-48 bg-smriti-primary/5 rounded-[16px] flex items-center justify-center shrink-0 overflow-hidden border-2 border-transparent group-hover:border-smriti-primary/30 transition-all">
-               {memory.id && objectUrls[memory.id] ? (
-                 // eslint-disable-next-line @next/next/no-img-element
-                 <img src={objectUrls[memory.id]} alt={memory.title} className="w-full h-full object-cover" />
-               ) : (
-                 <ImageIcon className="w-12 h-12 text-smriti-primary/30" />
-               )}
-            </div>
-            <div className="flex flex-col justify-center">
-              <h3 className="text-2xl font-bold text-smriti-text mb-2 group-hover:text-smriti-primary transition-colors">{memory.title}</h3>
-              <p className="text-xl text-smriti-muted font-medium mb-3">{memory.year}</p>
-              {memory.description && (
-                <p className="text-smriti-text/80 line-clamp-3">{memory.description}</p>
+            {/* Photo Container matching reference */}
+            <div className="relative aspect-[16/10] bg-[#eeeeed] border-b-[4px] border-[#1a1c1c] overflow-hidden flex items-center justify-center">
+              {memory.id && objectUrls[memory.id] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={objectUrls[memory.id]} alt={memory.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              ) : (
+                <ImageIcon className="w-16 h-16 text-[#434655]/40" />
               )}
-              <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-xs font-bold text-smriti-primary uppercase tracking-wider bg-smriti-primary/10 px-3 py-1 rounded-full">Edit Memory</span>
+              <span className="absolute top-3 left-3 bg-[#6bff8f] text-[#002109] px-3 py-1 neo-border font-label-caps text-xs font-bold uppercase">
+                {memory.year || "Memory"}
+              </span>
+            </div>
+
+            {/* Content Details */}
+            <div className="p-6 flex flex-col justify-between flex-1">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-label-bold text-[#434655] uppercase mb-1">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>{memory.year || "Special Event"}</span>
+                </div>
+
+                <h3 className="font-display-lg text-2xl sm:text-3xl font-black uppercase text-[#1a1c1c] mb-2 group-hover:text-[#004ac6] transition-colors">
+                  {memory.title}
+                </h3>
+
+                {memory.description && (
+                  <p className="font-body-md text-base text-[#434655] line-clamp-2 mb-4">
+                    {memory.description}
+                  </p>
+                )}
+              </div>
+
+              <div className="pt-4 border-t-[2px] border-[#1a1c1c] flex items-center justify-between font-label-bold text-xs uppercase text-[#2563eb]">
+                <span className="flex items-center gap-1">
+                  <Edit3 className="w-3.5 h-3.5" /> Edit Memory
+                </span>
+                <span className="bg-[#dbe1ff] text-[#00174b] px-2.5 py-1 neo-border">
+                  View Detail
+                </span>
               </div>
             </div>
           </div>
         ))}
       </div>
-    </motion.section>
+    </section>
   );
 }

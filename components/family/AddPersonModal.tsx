@@ -78,16 +78,14 @@ export function AddPersonModal({ isOpen, onClose, existingPerson }: AddPersonMod
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate type
     if (!file.type.startsWith("image/")) {
       setErrorMsg("Please select a valid image file.");
       return;
     }
 
-    // Validate size (5MB)
     const MAX_SIZE = 5 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-      setErrorMsg("This photo is a little too large. Please choose a photo under 5 MB.");
+      setErrorMsg("Please choose a photo under 5 MB.");
       return;
     }
 
@@ -101,68 +99,59 @@ export function AddPersonModal({ isOpen, onClose, existingPerson }: AddPersonMod
       setPhotoPreview(URL.createObjectURL(compressed));
     } catch (err) {
       console.error(err);
-      setErrorMsg("Something went wrong while processing the image. Please try another one.");
+      setErrorMsg("Could not process this image. Please try another.");
     }
   };
 
   const removePhoto = () => {
     setPhotoBlob(null);
-    if (photoPreview) {
-      URL.revokeObjectURL(photoPreview);
-      setPhotoPreview(null);
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSave = async () => {
     if (!name.trim()) {
-      setErrorMsg("Please enter a name.");
+      setErrorMsg("Please enter their name.");
       return;
     }
 
-    const finalRelation = relation === "Other" ? customRelation.trim() : relation;
-    if (!finalRelation) {
-      setErrorMsg("Please specify the relationship.");
-      return;
-    }
-
+    const finalRelation = relation === "Other" ? (customRelation.trim() || "Other") : relation;
+    
     setIsSaving(true);
     setErrorMsg("");
 
     try {
-      if (existingPerson?.id) {
+      if (existingPerson && existingPerson.id) {
         await familyStorage.updateFamilyMember(existingPerson.id, {
           name: name.trim(),
           relationship: finalRelation,
-          photoBlob,
-          useInGames: true,
+          photoBlob: photoBlob,
         });
       } else {
         await familyStorage.addFamilyMember({
           name: name.trim(),
           relationship: finalRelation,
-          photoBlob,
+          photoBlob: photoBlob,
           useInGames: true,
         });
       }
-
+      
       setShowToast(true);
       setTimeout(() => {
         setIsSaving(false);
         onClose();
-      }, 1000);
-      
+      }, 500);
     } catch (err) {
       console.error(err);
-      setErrorMsg("Could not save person. Please try again.");
+      setErrorMsg("Something went wrong while saving. Please try again.");
       setIsSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!existingPerson?.id) return;
+    if (!existingPerson || !existingPerson.id) return;
+    
     setIsSaving(true);
     try {
       await familyStorage.deleteFamilyMember(existingPerson.id);
@@ -170,7 +159,7 @@ export function AddPersonModal({ isOpen, onClose, existingPerson }: AddPersonMod
       onClose();
     } catch (err) {
       console.error(err);
-      setErrorMsg("Could not remove person.");
+      setErrorMsg("Failed to delete person.");
       setIsSaving(false);
     }
   };
@@ -179,59 +168,59 @@ export function AddPersonModal({ isOpen, onClose, existingPerson }: AddPersonMod
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-end justify-center md:items-center">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         {/* Backdrop */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         />
 
-        {/* Modal */}
+        {/* Modal Window - Compact & Neobrutalist */}
         <motion.div 
-          initial={{ opacity: 0, y: "100%", scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: "100%", scale: 0.98 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="relative w-full max-w-lg bg-smriti-bg md:rounded-[32px] rounded-t-[32px] rounded-b-none p-6 md:p-8 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.2 }}
+          className="relative w-full max-w-md bg-white neo-border neo-shadow p-5 sm:p-6 flex flex-col z-10"
         >
           {/* Header */}
-          <div className="flex items-center justify-between mb-6 border-b border-smriti-border/50 pb-4">
+          <div className="flex items-center justify-between pb-3 border-b-2 border-[#1a1c1c] mb-4">
             <div>
-              <h2 className="text-2xl font-bold text-smriti-text">
-                {existingPerson ? "Edit person" : "Add someone you know"}
+              <h2 className="font-display-lg text-2xl font-black uppercase text-[#1a1c1c] tracking-tight">
+                {existingPerson ? "Edit Person" : "Add Someone You Know"}
               </h2>
-              <p className="text-sm font-medium text-smriti-muted mt-1">
+              <p className="font-body-md text-xs text-[#434655]">
                 {existingPerson ? "Update their details below." : "Add a familiar face to help SMRITI remember."}
               </p>
             </div>
             <button 
               onClick={onClose}
-              className="p-3 bg-smriti-surface border border-smriti-border rounded-full hover:bg-smriti-primary/10 transition-colors touch-target shrink-0"
+              className="w-8 h-8 bg-white neo-border flex items-center justify-center hover:bg-[#ffe083] transition-colors cursor-pointer shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
               aria-label="Close modal"
             >
-              <X className="w-6 h-6 text-smriti-text" />
+              <X className="w-5 h-5 stroke-[2.5]" />
             </button>
           </div>
 
           {showToast && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-smriti-primary text-white font-bold px-6 py-3 rounded-full shadow-lg flex items-center gap-2 z-50 animate-bounce">
-              ✓ {name.trim()} saved
+            <div className="bg-[#6bff8f] text-[#002109] neo-border font-label-caps text-xs font-bold uppercase p-2 text-center mb-3">
+              ✓ {name.trim()} Saved Successfully
             </div>
           )}
 
           {errorMsg && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl mb-6 font-medium text-center">
+            <div className="bg-[#ffdad6] text-[#93000a] neo-border font-bold text-xs p-2.5 mb-3 text-center">
               {errorMsg}
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto pr-2 pb-4 flex flex-col gap-8">
+          <div className="flex flex-col gap-3.5">
             
-            {/* PHOTO SECTION */}
-            <div className="flex flex-col items-center">
+            {/* COMPACT PHOTO SECTION */}
+            <div className="flex items-center gap-4 bg-[#f9f9f8] neo-border p-3">
               <input 
                 type="file"
                 accept="image/*"
@@ -241,64 +230,62 @@ export function AddPersonModal({ isOpen, onClose, existingPerson }: AddPersonMod
                 aria-label="Upload photo"
               />
               
-              <div className="mb-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#dbe1ff] neo-border shrink-0 flex items-center justify-center overflow-hidden">
                 {photoPreview ? (
-                  <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-smriti-surface shadow-md">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-                  </div>
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-smriti-primary/5 border-2 border-dashed border-smriti-primary/30 flex items-center justify-center">
-                     <UserCircle2 className="w-16 h-16 text-smriti-primary/30" />
-                  </div>
+                  <UserCircle2 className="w-10 h-10 text-[#00174b]" />
                 )}
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-1.5 flex-1">
                 <button 
+                  type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-6 py-3 bg-smriti-surface border border-smriti-border rounded-full font-bold text-smriti-text hover:bg-smriti-primary/10 hover:border-smriti-primary/30 transition-colors touch-target flex items-center gap-2"
+                  className="px-3 py-1.5 bg-white neo-border font-label-caps text-xs font-bold uppercase hover:bg-[#ffe083] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <ImagePlus className="w-5 h-5" />
-                  {photoPreview ? "Change photo" : "Choose from device"}
+                  <ImagePlus className="w-3.5 h-3.5" />
+                  <span>{photoPreview ? "Change Photo" : "Choose Photo"}</span>
                 </button>
                 {photoPreview && (
                   <button 
+                    type="button"
                     onClick={removePhoto}
-                    className="p-3 bg-smriti-surface border border-smriti-border rounded-full font-bold text-red-500 hover:bg-red-50 transition-colors touch-target"
-                    aria-label="Remove photo"
+                    className="px-3 py-1 bg-[#ffdad6] text-[#ba1a1a] neo-border font-label-caps text-[10px] font-bold uppercase hover:bg-[#ffb4ab] transition-colors flex items-center justify-center gap-1 cursor-pointer"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-3 h-3" />
+                    <span>Remove Photo</span>
                   </button>
                 )}
               </div>
             </div>
 
-            {/* NAME SECTION */}
+            {/* NAME INPUT */}
             <div>
-              <label htmlFor="person-name" className="block text-lg font-bold text-smriti-text mb-2">
-                Full name
+              <label htmlFor="person-name" className="block font-label-caps text-xs font-bold uppercase text-[#1a1c1c] mb-1">
+                Full Name
               </label>
               <input 
                 id="person-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter their name"
-                className="w-full p-4 md:p-5 bg-smriti-surface border-2 border-smriti-border rounded-2xl text-xl text-smriti-text focus:border-smriti-primary focus:ring-4 focus:ring-smriti-primary/10 outline-none transition-all touch-target"
+                placeholder="Enter their full name"
+                className="w-full h-11 px-3 bg-white neo-border-2 font-body-md text-base text-[#1a1c1c] focus:outline-none focus:bg-[#dbe1ff]/20 focus:border-[#2563eb]"
               />
             </div>
 
-            {/* RELATIONSHIP SECTION */}
+            {/* RELATIONSHIP SELECT */}
             <div>
-              <label htmlFor="person-relation" className="block text-lg font-bold text-smriti-text mb-2">
+              <label htmlFor="person-relation" className="block font-label-caps text-xs font-bold uppercase text-[#1a1c1c] mb-1">
                 Relationship
               </label>
               <select
                 id="person-relation"
                 value={relation}
                 onChange={(e) => setRelation(e.target.value)}
-                className="w-full p-4 md:p-5 bg-smriti-surface border-2 border-smriti-border rounded-2xl text-xl text-smriti-text focus:border-smriti-primary outline-none transition-all touch-target appearance-none cursor-pointer"
+                className="w-full h-11 px-3 bg-white neo-border-2 font-body-md text-base text-[#1a1c1c] focus:outline-none focus:border-[#2563eb] cursor-pointer"
               >
                 {RELATIONSHIPS.map(rel => (
                   <option key={rel} value={rel}>{rel}</option>
@@ -311,38 +298,40 @@ export function AddPersonModal({ isOpen, onClose, existingPerson }: AddPersonMod
                   value={customRelation}
                   onChange={(e) => setCustomRelation(e.target.value)}
                   placeholder="E.g., Doctor, Neighbor"
-                  className="w-full mt-4 p-4 md:p-5 bg-smriti-surface border-2 border-smriti-border rounded-2xl text-xl text-smriti-text focus:border-smriti-primary focus:ring-4 focus:ring-smriti-primary/10 outline-none transition-all touch-target"
+                  className="w-full h-10 mt-2 px-3 bg-white neo-border-2 font-body-md text-sm text-[#1a1c1c] focus:outline-none focus:border-[#2563eb]"
                 />
               )}
             </div>
 
-            {/* DELETE SECTION (IF EDITING) */}
+            {/* DELETE OPTION (IF EDITING) */}
             {existingPerson && (
-              <div className="pt-6 border-t border-smriti-border/50">
+              <div className="pt-2 border-t border-[#1a1c1c]">
                 {!showDeleteConfirm ? (
                   <button 
+                    type="button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="w-full py-4 text-red-600 font-bold text-lg rounded-2xl hover:bg-red-50 transition-colors touch-target"
+                    className="w-full py-2 bg-[#ffdad6] text-[#ba1a1a] neo-border font-label-caps text-xs font-bold uppercase hover:bg-[#ffb4ab] transition-colors cursor-pointer"
                   >
-                    Remove {existingPerson.name}
+                    Delete {existingPerson.name}
                   </button>
                 ) : (
-                  <div className="bg-red-50 border border-red-200 p-6 rounded-3xl text-center">
-                    <p className="text-red-800 font-bold text-lg mb-2">Remove {existingPerson.name}?</p>
-                    <p className="text-red-700/80 mb-6 font-medium">This will remove this person from your family memories.</p>
-                    <div className="flex gap-4">
+                  <div className="bg-[#ffdad6] neo-border p-3 text-center">
+                    <p className="font-bold text-xs text-[#93000a] mb-2">Delete {existingPerson.name} from memory bank?</p>
+                    <div className="flex gap-2 justify-center">
                       <button 
+                        type="button"
                         onClick={() => setShowDeleteConfirm(false)}
-                        className="flex-1 py-4 bg-white text-smriti-text font-bold rounded-full border border-smriti-border touch-target"
+                        className="px-4 py-1.5 bg-white neo-border font-label-caps text-xs font-bold uppercase"
                       >
                         Keep
                       </button>
                       <button 
+                        type="button"
                         onClick={handleDelete}
                         disabled={isSaving}
-                        className="flex-1 py-4 bg-red-600 text-white font-bold rounded-full touch-target hover:bg-red-700 disabled:opacity-50"
+                        className="px-4 py-1.5 bg-[#ba1a1a] text-white neo-border font-label-caps text-xs font-bold uppercase"
                       >
-                        {isSaving ? "Removing..." : "Remove"}
+                        {isSaving ? "Deleting..." : "Confirm Delete"}
                       </button>
                     </div>
                   </div>
@@ -352,21 +341,23 @@ export function AddPersonModal({ isOpen, onClose, existingPerson }: AddPersonMod
             
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-6 border-t border-smriti-border/50 mt-auto bg-smriti-bg">
+          {/* ACTION BUTTONS */}
+          <div className="flex gap-3 pt-4 border-t-2 border-[#1a1c1c] mt-4">
             <button 
+              type="button"
               onClick={onClose}
               disabled={isSaving}
-              className="flex-1 py-4 bg-smriti-surface text-smriti-text font-bold text-lg rounded-full border-2 border-smriti-border hover:bg-smriti-border/30 transition-colors touch-target disabled:opacity-50"
+              className="flex-1 h-12 bg-white text-[#1a1c1c] neo-border font-headline-lg text-sm uppercase font-black hover:bg-[#f4f4f3] transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button 
+              type="button"
               onClick={handleSave}
               disabled={isSaving || showDeleteConfirm}
-              className="flex-1 py-4 bg-smriti-primary text-white font-bold text-lg rounded-full shadow-md hover:scale-[1.02] active:scale-95 transition-all touch-target disabled:opacity-50 disabled:scale-100"
+              className="flex-1 h-12 bg-[#2563eb] text-white neo-border shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[1px] hover:translate-x-[1px] active:translate-y-[3px] active:translate-x-[3px] active:shadow-none font-headline-lg text-sm uppercase font-black tracking-wider transition-all cursor-pointer disabled:opacity-50"
             >
-              {isSaving ? (existingPerson ? "Saving..." : "Saving...") : (existingPerson ? "Save Changes" : "Save Person")}
+              {isSaving ? "Saving..." : (existingPerson ? "Save Changes" : "Save Person")}
             </button>
           </div>
 
