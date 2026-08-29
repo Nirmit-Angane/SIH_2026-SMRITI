@@ -37,16 +37,13 @@ export default function Hero() {
           </div>
           
           {/* Right: Neobrutalist Visual Frame */}
-          <div className="lg:col-span-6 w-full h-[340px] sm:h-[400px] lg:h-[420px] neo-border neo-shadow bg-[#6bff8f] relative overflow-hidden flex items-center justify-center">
+          <div className="lg:col-span-6 w-full h-[340px] sm:h-[400px] lg:h-[420px] neo-border neo-shadow bg-neutral-900 relative overflow-hidden flex items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
-              src="https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=1000&auto=format&fit=crop" 
-              alt="Elder and family sharing a warm moment"
-              className="object-cover w-full h-full absolute inset-0 mix-blend-multiply opacity-80 filter grayscale hover:grayscale-0 transition-all duration-700" 
+              src="/images/hero-family.png" 
+              alt="Family sharing a warm moment at sunset"
+              className="object-cover w-full h-full" 
             />
-            <div className="relative z-10 font-display-lg text-2xl sm:text-3xl text-white mix-blend-difference uppercase bg-[#006e2f] px-6 py-2.5 neo-border rotate-[-5deg] tracking-wide">
-              Meet Smriti
-            </div>
           </div>
           
         </div>

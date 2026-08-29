@@ -68,16 +68,13 @@ export default function LandingPage() {
           </div>
 
           {/* Hero Right Visual Frame */}
-          <div className="w-full md:w-1/2 h-[340px] sm:h-[400px] lg:h-[440px] neo-border neo-shadow bg-[#6bff8f] relative overflow-hidden flex items-center justify-center">
+          <div className="w-full md:w-1/2 h-[340px] sm:h-[400px] lg:h-[440px] neo-border neo-shadow bg-neutral-900 relative overflow-hidden flex items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
-              className="object-cover w-full h-full absolute inset-0 mix-blend-multiply opacity-80 filter contrast-125 grayscale hover:grayscale-0 transition-all duration-700" 
-              alt="Elderly and family sharing a meaningful memory moment" 
-              src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000&auto=format&fit=crop"
+              className="object-cover w-full h-full" 
+              alt="Family sharing a meaningful moment at sunset" 
+              src="/images/hero-family.png"
             />
-            <div className="relative z-10 font-display-lg text-2xl sm:text-3xl text-white mix-blend-difference uppercase bg-[#006e2f] px-5 py-2.5 neo-border rotate-[-5deg] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] tracking-wide">
-              Meet Smriti
-            </div>
           </div>
 
         </section>
