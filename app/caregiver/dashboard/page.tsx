@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db/dexie";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/components/LanguageProvider";
 import { useState, useEffect } from "react";
 
 function formatTimestamp(dateStr: string): string {
@@ -24,53 +25,9 @@ function formatTimestamp(dateStr: string): string {
   return `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${timeStr}`;
 }
 
-const GAME_TITLE_MAP: Record<string, { title: string; icon: any; color: string; badge: string; badgeBg: string }> = {
-  "tetris": {
-    title: "Played Mind Puzzle (Tetris)",
-    icon: Gamepad2,
-    color: "bg-[#2563eb]",
-    badge: "Played",
-    badgeBg: "bg-[#dbe1ff] text-[#00174b]"
-  },
-  "what-changed": {
-    title: "Played Mind Puzzle (Tetris)",
-    icon: Gamepad2,
-    color: "bg-[#2563eb]",
-    badge: "Played",
-    badgeBg: "bg-[#dbe1ff] text-[#00174b]"
-  },
-  "family-friends": {
-    title: "Played Family Recognition Game",
-    icon: Users,
-    color: "bg-[#6bff8f]",
-    badge: "Success",
-    badgeBg: "bg-[#6bff8f] text-[#002109]"
-  },
-  "family_recognition": {
-    title: "Played Family Recognition Game",
-    icon: Users,
-    color: "bg-[#6bff8f]",
-    badge: "Success",
-    badgeBg: "bg-[#6bff8f] text-[#002109]"
-  },
-  "memory-cards": {
-    title: "Played Regional Memory Match",
-    icon: Sparkles,
-    color: "bg-[#ffe083]",
-    badge: "Completed",
-    badgeBg: "bg-[#ffe083] text-[#231b00]"
-  },
-  "story-time": {
-    title: "Listened to AI Story Memory",
-    icon: BookOpen,
-    color: "bg-[#ffdad6]",
-    badge: "Listened",
-    badgeBg: "bg-[#ffdad6] text-[#ba1a1a]"
-  }
-};
-
 export default function CaregiverDashboardPage() {
   const { profile } = useAuth();
+  const { t } = useLanguage();
   const elderId = 1;
 
   // Real-time Dexie Live Queries
@@ -108,6 +65,14 @@ export default function CaregiverDashboardPage() {
   const totalMemoriesCount = (memories || []).length;
   const totalFamilyCount = (familyMembers || []).length;
 
+  const getGameTitle = (gameType: string) => {
+    if (gameType.includes("tetris") || gameType.includes("what")) return t("activities.tetris.title") || "Mind Puzzle (Tetris)";
+    if (gameType.includes("family")) return t("activities.family.title") || "Family Recognition Game";
+    if (gameType.includes("memory")) return t("activities.memory.title") || "Regional Memory Match";
+    if (gameType.includes("story")) return t("activities.story.title") || "AI Story Memory";
+    return gameType;
+  };
+
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
       
@@ -117,7 +82,7 @@ export default function CaregiverDashboardPage() {
           href="/dashboard"
           className="inline-flex items-center gap-2 bg-white neo-border px-4 py-2 font-label-caps text-xs uppercase font-bold text-[#1a1c1c] hover:bg-[#f4f4f3] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4 stroke-[3]" /> Return to Elder View
+          <ArrowLeft className="w-4 h-4 stroke-[3]" /> {t("caregiver.returnToElder") || "Return to Elder View"}
         </Link>
       </div>
 
@@ -149,7 +114,7 @@ export default function CaregiverDashboardPage() {
         {/* Stat 1: Games Today (Real-time) */}
         <div className="bg-[#2563eb] text-white p-6 neo-border neo-shadow flex flex-col justify-between">
           <div className="flex justify-between items-start mb-4">
-            <span className="font-label-caps text-xs uppercase text-white/90">Cognitive Play</span>
+            <span className="font-label-caps text-xs uppercase text-white/90">{t("caregiver.cognitivePlay") || "Cognitive Play"}</span>
             <div className="p-2 bg-white text-[#2563eb] neo-border">
               <Gamepad2 className="w-6 h-6 stroke-[2.5]" />
             </div>
@@ -159,7 +124,7 @@ export default function CaregiverDashboardPage() {
               {gamesCompletedToday}
             </div>
             <div className="font-label-caps text-xs uppercase font-bold text-white/90">
-              Games Completed Today
+              {t("caregiver.gamesCompleted") || "Games Completed Today"}
             </div>
           </div>
         </div>
@@ -167,7 +132,7 @@ export default function CaregiverDashboardPage() {
         {/* Stat 2: Accuracy (Real-time) */}
         <div className="bg-[#6bff8f] text-[#002109] p-6 neo-border neo-shadow flex flex-col justify-between">
           <div className="flex justify-between items-start mb-4">
-            <span className="font-label-caps text-xs uppercase text-[#002109]/90">Recognition</span>
+            <span className="font-label-caps text-xs uppercase text-[#002109]/90">{t("caregiver.recognition") || "Recognition"}</span>
             <div className="p-2 bg-white text-[#002109] neo-border">
               <Percent className="w-6 h-6 stroke-[2.5]" />
             </div>
@@ -177,7 +142,7 @@ export default function CaregiverDashboardPage() {
               {averageAccuracy}%
             </div>
             <div className="font-label-caps text-xs uppercase font-bold text-[#002109]/90">
-              Avg Session Accuracy
+              {t("caregiver.avgAccuracy") || "Avg Session Accuracy"}
             </div>
           </div>
         </div>
@@ -185,7 +150,7 @@ export default function CaregiverDashboardPage() {
         {/* Stat 3: Memory Bank Count (Real-time) */}
         <div className="bg-[#ffe083] text-[#231b00] p-6 neo-border neo-shadow flex flex-col justify-between">
           <div className="flex justify-between items-start mb-4">
-            <span className="font-label-caps text-xs uppercase text-[#231b00]/90">Memory Circle</span>
+            <span className="font-label-caps text-xs uppercase text-[#231b00]/90">{t("caregiver.memoryCircle") || "Memory Circle"}</span>
             <div className="p-2 bg-white text-[#231b00] neo-border">
               <Heart className="w-6 h-6 stroke-[2.5]" />
             </div>
@@ -195,7 +160,7 @@ export default function CaregiverDashboardPage() {
               {totalFamilyCount + totalMemoriesCount}
             </div>
             <div className="font-label-caps text-xs uppercase font-bold text-[#231b00]/90">
-              {totalFamilyCount} Faces • {totalMemoriesCount} Memories
+              {t("caregiver.facesMemories", { faces: String(totalFamilyCount), memories: String(totalMemoriesCount) }) || `${totalFamilyCount} Faces • ${totalMemoriesCount} Memories`}
             </div>
           </div>
         </div>
@@ -208,11 +173,11 @@ export default function CaregiverDashboardPage() {
         <div className="lg:col-span-8 bg-white neo-border neo-shadow p-6 sm:p-8">
           <div className="flex justify-between items-center mb-6 pb-4 border-b-[3px] border-[#1a1c1c]">
             <h2 className="font-headline-lg text-2xl font-black uppercase text-[#1a1c1c]">
-              Recent Activity Log
+              {t("caregiver.recentLog") || "Recent Activity Log"}
             </h2>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-[#00FF41] border border-black animate-pulse"></span>
-              <span className="font-label-caps text-xs uppercase font-bold text-[#434655]">Live Sync</span>
+              <span className="font-label-caps text-xs uppercase font-bold text-[#434655]">{t("caregiver.liveSync") || "Live Sync"}</span>
             </div>
           </div>
 
@@ -220,14 +185,11 @@ export default function CaregiverDashboardPage() {
           {sessions && sessions.length > 0 ? (
             <div className="space-y-3.5 font-body-md">
               {sessions.slice(0, 6).map((session) => {
-                const meta = GAME_TITLE_MAP[session.gameType] || {
-                  title: `Played ${session.gameType}`,
-                  icon: Gamepad2,
-                  color: "bg-[#dbe1ff]",
-                  badge: "Completed",
-                  badgeBg: "bg-[#dbe1ff] text-[#00174b]"
-                };
-                const Icon = meta.icon;
+                const Icon = session.gameType.includes("story") ? BookOpen : session.gameType.includes("family") ? Users : session.gameType.includes("memory") ? Sparkles : Gamepad2;
+                const color = session.gameType.includes("story") ? "bg-[#ffdad6]" : session.gameType.includes("family") ? "bg-[#6bff8f]" : session.gameType.includes("memory") ? "bg-[#ffe083]" : "bg-[#2563eb]";
+                const badge = session.gameType.includes("story") ? (t("common.taken") || "Listened") : (t("common.completed") || "Completed");
+                const badgeBg = session.gameType.includes("story") ? "bg-[#ffdad6] text-[#ba1a1a]" : session.gameType.includes("family") ? "bg-[#6bff8f] text-[#002109]" : session.gameType.includes("memory") ? "bg-[#ffe083] text-[#231b00]" : "bg-[#dbe1ff] text-[#00174b]";
+                const title = getGameTitle(session.gameType);
 
                 return (
                   <div 
@@ -235,12 +197,12 @@ export default function CaregiverDashboardPage() {
                     className="p-4 neo-border bg-[#f9f9f8] flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:translate-x-[1px] transition-transform"
                   >
                     <div className="flex items-start gap-3.5">
-                      <div className={`p-2.5 ${meta.color} neo-border shrink-0 text-[#1a1c1c] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]`}>
+                      <div className={`p-2.5 ${color} neo-border shrink-0 text-[#1a1c1c] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]`}>
                         <Icon className="w-5 h-5 stroke-[2.5]" />
                       </div>
                       <div>
                         <h4 className="font-display-lg text-base sm:text-lg font-black uppercase text-[#1a1c1c]">
-                          {meta.title}
+                          {title}
                         </h4>
                         <p className="font-body-md text-xs sm:text-sm text-[#434655] flex items-center gap-2 mt-0.5">
                           <span>Score: {session.score} pts</span>
@@ -251,8 +213,8 @@ export default function CaregiverDashboardPage() {
                         </p>
                       </div>
                     </div>
-                    <span className={`${meta.badgeBg} text-xs font-label-caps font-bold px-3 py-1 neo-border uppercase self-start sm:self-center shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]`}>
-                      {meta.badge}
+                    <span className={`${badgeBg} text-xs font-label-caps font-bold px-3 py-1 neo-border uppercase self-start sm:self-center shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]`}>
+                      {badge}
                     </span>
                   </div>
                 );
@@ -262,7 +224,7 @@ export default function CaregiverDashboardPage() {
             <div className="bg-[#f9f9f8] neo-border p-8 text-center flex flex-col items-center justify-center">
               <Gamepad2 className="w-12 h-12 text-[#434655] mb-2" />
               <h3 className="font-display-lg text-xl font-black uppercase text-[#1a1c1c] mb-1">
-                No Activities Recorded Yet
+                {t("caregiver.noActivities") || "No Activities Recorded Yet"}
               </h3>
               <p className="font-body-md text-sm text-[#434655] max-w-sm mb-4">
                 When cognitive memory games, puzzles, or story sessions are completed, they will sync here in real time.
@@ -271,7 +233,7 @@ export default function CaregiverDashboardPage() {
                 href="/activities"
                 className="px-6 py-2.5 bg-[#2563eb] text-white neo-border shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-label-caps text-xs uppercase font-bold"
               >
-                Launch an Activity
+                {t("home.startActivity") || "Launch an Activity"}
               </Link>
             </div>
           )}
@@ -299,18 +261,18 @@ export default function CaregiverDashboardPage() {
               {profile?.name || "Elder"}
             </h3>
             <p className="font-body-md text-sm text-[#4e3d00] font-bold uppercase mb-4">
-              Region: {profile?.region ? profile.region.toUpperCase() : "ACTIVE"}
+              {t("caregiver.region", { region: profile?.region ? profile.region.toUpperCase() : "ACTIVE" }) || `Region: ${profile?.region ? profile.region.toUpperCase() : "ACTIVE"}`}
             </p>
 
             <div className="w-full space-y-2 mb-6 text-left font-body-md text-xs sm:text-sm">
               <div className="p-2.5 bg-white neo-border flex justify-between">
-                <span className="text-[#434655]">Total Sessions:</span>
+                <span className="text-[#434655]">{t("caregiver.totalSessions", { count: "" }).split(":")[0] || "Total Sessions"}:</span>
                 <span className="font-bold text-[#1a1c1c]">{totalSessionsCount}</span>
               </div>
               <div className="p-2.5 bg-white neo-border flex justify-between">
-                <span className="text-[#434655]">Activity Status:</span>
+                <span className="text-[#434655]">{t("caregiver.activityStatus") || "Activity Status"}:</span>
                 <span className="font-bold text-[#006e2f]">
-                  {gamesCompletedToday > 0 ? "Active Today" : "Ready for Activity"}
+                  {gamesCompletedToday > 0 ? (t("common.completed") || "Active Today") : (t("caregiver.readyForActivity") || "Ready for Activity")}
                 </span>
               </div>
             </div>
@@ -321,7 +283,7 @@ export default function CaregiverDashboardPage() {
               className="w-full py-3.5 bg-[#2563eb] text-white neo-border shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] font-label-caps text-xs uppercase font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <Gamepad2 className="w-4 h-4 stroke-[2.5]" />
-              <span>Start Cognitive Game</span>
+              <span>{t("caregiver.startCognitiveGame") || "Start Cognitive Game"}</span>
             </Link>
           </div>
         </div>

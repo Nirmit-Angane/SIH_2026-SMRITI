@@ -4,8 +4,10 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db/dexie";
 import Link from "next/link";
 import { ArrowRight, Users } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export function FamilyConnection() {
+  const { t } = useLanguage();
   const familyCount = useLiveQuery(() => db.familyMembers.count()) || 0;
   const memoryCount = useLiveQuery(() => db.memories.count()) || 0;
 
@@ -13,7 +15,7 @@ export function FamilyConnection() {
     <section className="w-full mb-6">
       <div className="pb-2 mb-3 border-b-2 border-[#1a1c1c]">
         <h2 className="font-display-lg text-xl sm:text-2xl font-black uppercase text-[#1a1c1c]">
-          Family & Memory Circle
+          {t("profile.family.title") || "Family & Memory Circle"}
         </h2>
       </div>
       
@@ -28,10 +30,10 @@ export function FamilyConnection() {
             </div>
             <div>
               <span className="block font-display-lg text-base sm:text-lg font-black uppercase text-[#231b00] group-hover:text-[#004ac6] transition-colors">
-                {familyCount} Faces • {memoryCount} Memories
+                {t("profile.family.countDesc", { faces: String(familyCount), memories: String(memoryCount) }) || `${familyCount} Faces • ${memoryCount} Memories`}
               </span>
               <span className="block font-body-md text-xs sm:text-sm text-[#4e3d00]">
-                Manage family photos, stories, and voice memories
+                {t("profile.family.manageDesc") || "Manage family photos, stories, and voice memories"}
               </span>
             </div>
           </div>

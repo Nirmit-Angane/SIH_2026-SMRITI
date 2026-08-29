@@ -12,10 +12,26 @@ export const en = {
     pleaseWait: "Please wait...",
     continue: "Continue",
     start: "Start",
+    play: "Play",
+    startStory: "Start Story",
     back: "Back",
     next: "Next",
     finish: "Finish",
-    close: "Close"
+    close: "Close",
+    tryAgain: "Try Again",
+    playAgain: "Play Again",
+    enabled: "Enabled",
+    disabled: "Disabled",
+    on: "On",
+    off: "Off",
+    mins: "~{{count}} Mins",
+    completed: "Completed",
+    inProgress: "In Progress",
+    goalMet: "Goal Met",
+    markDone: "Mark Done",
+    taken: "Taken ✓",
+    addGlass: "+ Add Glass",
+    glassesToday: "{{current}} / {{max}} glasses today"
   },
   nav: {
     home: "Home",
@@ -41,7 +57,15 @@ export const en = {
     startActivity: "Start Activity",
     whatToDo: "What would you like to do?",
     talkToSmriti: "Talk to SMRITI",
-    startTalking: "Start Talking"
+    startTalking: "Start Talking",
+    todaysPlan: "Today's Plan",
+    morningMedicine: "Morning Medicine",
+    medicineDesc: "Take with breakfast & warm water.",
+    hydrationCheck: "Hydration Check",
+    dailyWalk: "Daily Walk",
+    walkDesc: "20 mins gentle garden or veranda walk.",
+    walkCompleted: "✓ Walk Completed",
+    markCompleted: "Mark Completed"
   },
   activities: {
     title: "Activities",
@@ -57,6 +81,10 @@ export const en = {
     changes: {
       title: "What Changed?",
       desc: "Look carefully and notice what is different."
+    },
+    tetris: {
+      title: "Tetris",
+      desc: "A calm, gentle puzzle of falling shapes."
     },
     story: {
       title: "Story Time",
@@ -81,15 +109,15 @@ export const en = {
     editProfile: "Edit Profile",
     saveChanges: "Save Changes",
     experience: {
-      title: "Experience",
-      region: "Region & Theme",
-      regionDesc: "Changes colors and cultural patterns",
-      language: "Language",
+      title: "Language & Regional Experience",
+      region: "Region & Cultural Theme",
+      regionDesc: "Adapts cultural games, recipes, and traditional art styles",
+      language: "Language Selection",
       languageDesc: "Written text language",
-      chooseLanguage: "Choose a language that feels comfortable.",
+      chooseLanguage: "Choose the primary language for stories, activities, and voice interactions.",
       recommended: "Recommended for your region",
-      voiceGuidance: "Voice Guidance",
-      voiceGuidanceDesc: "Spoken instructions in activities",
+      voiceGuidance: "Spoken Voice Guidance",
+      voiceGuidanceDesc: "Reads instructions and stories aloud automatically",
       voiceNotAvailable: "Voice guidance is currently available in {{fallback}}.",
       regionChanged: "Your region has changed.",
       languagePrompt: "{{language}} is commonly used in {{region}}.",
@@ -98,32 +126,74 @@ export const en = {
       switchLanguage: "Switch to {{language}}"
     },
     accessibility: {
-      title: "Accessibility",
-      textSize: "Text Size",
-      textSizeDesc: "Make words larger and easier to read",
-      highContrast: "High Contrast",
-      highContrastDesc: "Make colors brighter and easier to see",
+      title: "Visual & Accessibility Controls",
+      textSize: "Text Sizing",
+      textSizeDesc: "Scales reading text across all screens for maximum comfort",
+      standard: "Standard (Default)",
+      large: "Large (Senior friendly)",
+      extraLarge: "Extra Large (High visibility)",
+      highContrast: "High Contrast Borders",
+      highContrastDesc: "Sharp 4px solid borders with pure monochrome edges",
       reducedMotion: "Reduced Motion",
-      reducedMotionDesc: "Disable interface animations"
+      reducedMotionDesc: "Disables animations and transitions for sensitive eyes"
     },
     activities: {
-      title: "Activities",
+      title: "Activity Preferences",
+      preferredTitle: "Preferred Activities",
+      preferredDesc: "Select exercise types you enjoy most for your daily routine",
+      dailyMoment: "Gentle Daily Moment",
+      dailyMomentDesc: "Get an automatic daily reminder",
       daily: "Daily Gentle Activity",
       dailyDesc: "Recommend one simple activity each day",
       preferences: "Activity Preferences",
       preferencesDesc: "Choose what you enjoy most"
     },
+    family: {
+      title: "Family & Memory Circle",
+      countDesc: "{{faces}} Faces • {{memories}} Memories",
+      manageDesc: "Manage family photos, stories, and voice memories"
+    },
     privacy: {
-      title: "Privacy & Data",
-      clearData: "Clear local data",
-      clearDataDesc: "Remove memories and photos from this device",
-      dataCleared: "Data cleared successfully."
+      title: "Privacy & Device Storage",
+      localStorage: "100% Private Local Storage",
+      localStorageDesc: "Your family photos and personal memories stay on your device and are never sent to third-party ad networks.",
+      resetBank: "Reset Local Memory Bank",
+      resetDesc: "Erase local photos and activity records",
+      clearData: "Clear Data",
+      confirmTitle: "Clear Local Data?",
+      confirmDesc: "This will permanently delete all stored family photos, memories, and game scores from this browser.",
+      yesDelete: "Yes, Delete",
+      dataCleared: "Local memory data cleared successfully."
     },
     account: {
-      title: "Account",
-      signOut: "Sign Out",
+      title: "Account Details",
+      signedInAs: "Signed In As",
+      active: "Active",
+      guestUser: "Local Guest User",
+      signOut: "Sign Out of Account",
+      confirmTitle: "Sign Out?",
+      confirmDesc: "You can log back in anytime with your email and password.",
+      stay: "Stay",
       signOutConfirm: "Are you sure you want to sign out?"
     }
+  },
+  caregiver: {
+    returnToElder: "Return to Elder View",
+    cognitivePlay: "Cognitive Play",
+    gamesCompleted: "Games completed today",
+    recognition: "Recognition",
+    avgAccuracy: "Avg session accuracy",
+    memoryCircle: "Memory Circle",
+    facesMemories: "{{faces}} Faces • {{memories}} Memories",
+    recentLog: "Recent Activity Log",
+    liveSync: "Live Sync",
+    noActivities: "No activities logged yet today.",
+    region: "Region: {{region}}",
+    totalSessions: "Total Sessions: {{count}}",
+    activityStatus: "Activity Status",
+    readyForActivity: "Ready for Activity",
+    startCognitiveGame: "Start Cognitive Game",
+    quickCall: "Quick Call {{name}}"
   },
   games: {
     familyRecognition: {

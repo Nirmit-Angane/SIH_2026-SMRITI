@@ -4,9 +4,11 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Mail, AlertCircle } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export function AccountSettings() {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
@@ -19,7 +21,7 @@ export function AccountSettings() {
     <section className="w-full mb-8">
       <div className="pb-2 mb-3 border-b-2 border-[#1a1c1c]">
         <h2 className="font-display-lg text-xl sm:text-2xl font-black uppercase text-[#1a1c1c]">
-          Account Details
+          {t("profile.account.title") || "Account Details"}
         </h2>
       </div>
 
@@ -31,16 +33,16 @@ export function AccountSettings() {
             <Mail className="w-4 h-4 text-[#434655] shrink-0" />
             <div className="min-w-0">
               <span className="block font-label-caps text-[10px] font-bold uppercase text-[#434655]">
-                Signed In As
+                {t("profile.account.signedInAs") || "Signed In As"}
               </span>
               <span className="block font-display-lg text-sm sm:text-base font-bold text-[#1a1c1c] truncate">
-                {user?.email || "Local Guest User"}
+                {user?.email || (t("profile.account.guestUser") || "Local Guest User")}
               </span>
             </div>
           </div>
 
           <span className="bg-[#6bff8f] text-[#002109] neo-border px-2.5 py-0.5 font-label-caps text-[10px] font-bold uppercase shrink-0">
-            Active
+            {t("profile.account.active") || "Active"}
           </span>
         </div>
 
@@ -52,7 +54,7 @@ export function AccountSettings() {
             className="w-full py-3 px-4 bg-[#ffdad6] text-[#ba1a1a] neo-border shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all font-headline-lg text-sm uppercase font-black tracking-wider flex items-center justify-center gap-2 cursor-pointer"
           >
             <LogOut className="w-4 h-4 stroke-[2.5]" />
-            <span>Sign Out of Account</span>
+            <span>{t("profile.account.signOut") || "Sign Out of Account"}</span>
           </button>
         </div>
 
@@ -79,10 +81,10 @@ export function AccountSettings() {
                 <AlertCircle className="w-7 h-7 stroke-[2.5]" />
               </div>
               <h3 className="font-display-lg text-2xl font-black uppercase text-[#1a1c1c] mb-2">
-                Sign Out?
+                {t("profile.account.confirmTitle") || "Sign Out?"}
               </h3>
               <p className="font-body-md text-xs sm:text-sm text-[#434655] mb-6">
-                You can log back in anytime with your email and password.
+                {t("profile.account.confirmDesc") || "You can log back in anytime with your email and password."}
               </p>
               <div className="flex gap-3">
                 <button 
@@ -91,7 +93,7 @@ export function AccountSettings() {
                   disabled={isSigningOut}
                   className="flex-1 py-3 bg-white text-[#1a1c1c] neo-border font-headline-lg text-xs uppercase font-black cursor-pointer hover:bg-[#f4f4f3]"
                 >
-                  Stay
+                  {t("profile.account.stay") || "Stay"}
                 </button>
                 <button 
                   type="button"
@@ -99,7 +101,7 @@ export function AccountSettings() {
                   disabled={isSigningOut}
                   className="flex-1 py-3 bg-[#ba1a1a] text-white neo-border shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-headline-lg text-xs uppercase font-black cursor-pointer hover:bg-[#93000a] disabled:opacity-50"
                 >
-                  {isSigningOut ? "Signing Out..." : "Sign Out"}
+                  {isSigningOut ? (t("common.pleaseWait") || "Signing Out...") : (t("profile.account.signOut") || "Sign Out")}
                 </button>
               </div>
             </motion.div>

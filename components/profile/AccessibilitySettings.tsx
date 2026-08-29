@@ -1,9 +1,11 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export function AccessibilitySettings() {
   const { profile, updateProfile } = useAuth();
+  const { t } = useLanguage();
   
   if (!profile) return null;
 
@@ -36,7 +38,7 @@ export function AccessibilitySettings() {
     <section className="w-full max-w-3xl mx-auto mb-8">
       <div className="pb-2 mb-4 border-b-2 border-[#1a1c1c]">
         <h2 className="font-display-lg text-2xl font-black uppercase text-[#1a1c1c]">
-          Visual & Accessibility Controls
+          {t("profile.accessibility.title") || "Visual & Accessibility Controls"}
         </h2>
       </div>
 
@@ -46,10 +48,10 @@ export function AccessibilitySettings() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="font-display-lg text-lg font-black uppercase text-[#1a1c1c]">
-              Text Sizing
+              {t("profile.accessibility.textSize") || "Text Sizing"}
             </h3>
             <p className="font-body-md text-xs sm:text-sm text-[#434655]">
-              Scales reading text across all screens for maximum comfort
+              {t("profile.accessibility.textSizeDesc") || "Scales reading text across all screens for maximum comfort"}
             </p>
           </div>
 
@@ -58,9 +60,9 @@ export function AccessibilitySettings() {
             onChange={(e) => updateTextSize(e.target.value as any)}
             className="h-11 px-4 bg-white neo-border-2 font-display-lg text-sm uppercase font-bold text-[#1a1c1c] focus:outline-none focus:border-[#2563eb] cursor-pointer"
           >
-            <option value="standard">Standard (Default)</option>
-            <option value="large">Large (Senior friendly)</option>
-            <option value="extraLarge">Extra Large (High visibility)</option>
+            <option value="standard">{t("profile.accessibility.standard") || "Standard (Default)"}</option>
+            <option value="large">{t("profile.accessibility.large") || "Large (Senior friendly)"}</option>
+            <option value="extraLarge">{t("profile.accessibility.extraLarge") || "Extra Large (High visibility)"}</option>
           </select>
         </div>
 
@@ -68,10 +70,10 @@ export function AccessibilitySettings() {
         <div className="pt-6 border-t-2 border-[#1a1c1c] flex items-center justify-between gap-4">
           <div>
             <h3 className="font-display-lg text-lg font-black uppercase text-[#1a1c1c]">
-              High Contrast Borders
+              {t("profile.accessibility.highContrast") || "High Contrast Borders"}
             </h3>
             <p className="font-body-md text-xs sm:text-sm text-[#434655]">
-              Sharp 4px solid borders with pure monochrome edges
+              {t("profile.accessibility.highContrastDesc") || "Sharp 4px solid borders with pure monochrome edges"}
             </p>
           </div>
 
@@ -83,7 +85,7 @@ export function AccessibilitySettings() {
                 : "bg-[#ffdad6] text-[#ba1a1a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
             }`}
           >
-            {(profile.accessibility?.highContrast ?? false) ? "Enabled" : "Disabled"}
+            {(profile.accessibility?.highContrast ?? false) ? (t("common.enabled") || "Enabled") : (t("common.disabled") || "Disabled")}
           </button>
         </div>
 
@@ -91,10 +93,10 @@ export function AccessibilitySettings() {
         <div className="pt-6 border-t-2 border-[#1a1c1c] flex items-center justify-between gap-4">
           <div>
             <h3 className="font-display-lg text-lg font-black uppercase text-[#1a1c1c]">
-              Reduced Motion
+              {t("profile.accessibility.reducedMotion") || "Reduced Motion"}
             </h3>
             <p className="font-body-md text-xs sm:text-sm text-[#434655]">
-              Disables animations and transitions for sensitive eyes
+              {t("profile.accessibility.reducedMotionDesc") || "Disables animations and transitions for sensitive eyes"}
             </p>
           </div>
 
@@ -106,7 +108,7 @@ export function AccessibilitySettings() {
                 : "bg-[#ffdad6] text-[#ba1a1a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
             }`}
           >
-            {(profile.accessibility?.reducedMotion ?? false) ? "Enabled" : "Disabled"}
+            {(profile.accessibility?.reducedMotion ?? false) ? (t("common.enabled") || "Enabled") : (t("common.disabled") || "Disabled")}
           </button>
         </div>
         

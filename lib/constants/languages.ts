@@ -3,7 +3,7 @@ export interface StoryLanguage {
   name: string;
   nativeName: string;
   script: string;
-  ttsLangCode: string;
+  ttsLangCode: "hi-IN" | "en-IN" | "en-US";
   flag?: string;
 }
 
@@ -13,14 +13,14 @@ export const STORY_LANGUAGES: StoryLanguage[] = [
     name: "Assamese", 
     nativeName: "অসমীয়া", 
     script: "Assamese (অসমীয়া লিপি)", 
-    ttsLangCode: "as-IN" 
+    ttsLangCode: "en-IN" 
   },
   { 
     id: "bn", 
     name: "Bengali", 
     nativeName: "বাংলা", 
     script: "Bengali (বাংলা লিপি)", 
-    ttsLangCode: "bn-IN" 
+    ttsLangCode: "en-IN" 
   },
   { 
     id: "hi", 
@@ -41,7 +41,7 @@ export const STORY_LANGUAGES: StoryLanguage[] = [
     name: "Manipuri", 
     nativeName: "মৈতৈলোন্ / Manipuri", 
     script: "Manipuri / Meiteilon", 
-    ttsLangCode: "bn-IN" 
+    ttsLangCode: "en-IN" 
   },
   { 
     id: "kha", 
@@ -69,13 +69,13 @@ export const STORY_LANGUAGES: StoryLanguage[] = [
     name: "Nepali", 
     nativeName: "नेपाली", 
     script: "Nepali (देवनागरी)", 
-    ttsLangCode: "ne-NP" 
+    ttsLangCode: "hi-IN" 
   },
   { 
     id: "trp", 
     name: "Kokborok", 
     nativeName: "Kokborok", 
     script: "Kokborok (Latin/Bengali)", 
-    ttsLangCode: "bn-IN" 
+    ttsLangCode: "en-IN" 
   },
 ];

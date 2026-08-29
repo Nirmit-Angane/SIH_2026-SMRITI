@@ -35,13 +35,31 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   // Sync with profile language if available
   useEffect(() => {
     if (profile?.language) {
-      let code = profile.language;
-      if (code === "English") code = "en";
-      else if (code === "Hindi") code = "hi";
+      let code = profile.language.toLowerCase().trim();
+      const nameMap: Record<string, string> = {
+        english: "en",
+        hindi: "hi",
+        assamese: "as",
+        bengali: "bn",
+        manipuri: "mni",
+        meitei: "mni",
+        khasi: "kha",
+        mizo: "lus",
+        nagamese: "nag",
+        nepali: "ne",
+        kokborok: "kok",
+        garo: "garo",
+        adi: "adi",
+        nyishi: "njo",
+        sikkimese: "sip",
+        lepcha: "lep"
+      };
       
-      setCurrentLanguage(code);
+      const normalizedCode = nameMap[code] || code;
+      
+      setCurrentLanguage(normalizedCode);
       if (typeof window !== "undefined") {
-        localStorage.setItem("smriti_language", code);
+        localStorage.setItem("smriti_language", normalizedCode);
       }
     }
   }, [profile?.language]);

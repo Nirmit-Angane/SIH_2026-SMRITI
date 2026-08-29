@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ACTIVITIES } from "@/lib/activities";
 import { Clock, ArrowRight } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 const BG_COLORS = [
   "bg-[#dbe1ff]",
@@ -12,6 +13,8 @@ const BG_COLORS = [
 ];
 
 export function ActivityLibrary() {
+  const { t } = useLanguage();
+
   return (
     <section className="w-full mb-16">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -32,10 +35,10 @@ export function ActivityLibrary() {
                   </div>
                   <div>
                     <h3 className="font-headline-lg text-2xl sm:text-3xl font-black uppercase text-[#1a1c1c] mb-1">
-                      {activity.title}
+                      {t(`activities.${activity.id}.title`) || activity.title}
                     </h3>
                     <p className="font-body-md text-base text-[#434655]">
-                      {activity.desc}
+                      {t(`activities.${activity.id}.desc`) || activity.desc}
                     </p>
                   </div>
                 </div>
@@ -43,11 +46,11 @@ export function ActivityLibrary() {
                 <div className="flex items-center justify-between pt-4 border-t-[2px] border-[#1a1c1c]">
                   <div className="flex items-center gap-1.5 font-label-caps text-xs text-[#1a1c1c] font-bold uppercase">
                     <Clock className="w-3.5 h-3.5" />
-                    <span>~5 Mins</span>
+                    <span>{t("common.mins", { count: "5" }) || "~5 Mins"}</span>
                   </div>
                   
                   <span className="font-label-caps text-xs font-bold uppercase bg-[#1a1c1c] text-white px-3 py-1.5 neo-border inline-flex items-center gap-1 group-hover:bg-[#004ac6] transition-colors">
-                    {activity.cta}
+                    {t(`common.${activity.cta.toLowerCase().replace(/ /g, "")}`) || activity.cta}
                     <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>

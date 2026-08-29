@@ -1,19 +1,21 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/components/LanguageProvider";
 import { CheckSquare, Square, Sparkles } from "lucide-react";
-
-const ACTIVITY_CATEGORIES = [
-  { id: "family", label: "Family & Friends" },
-  { id: "memory_cards", label: "Memory Cards" },
-  { id: "story_time", label: "Story Time" },
-  { id: "what_changed", label: "Mind Puzzle" },
-];
 
 export function ActivityPreferences() {
   const { profile, updateProfile } = useAuth();
+  const { t } = useLanguage();
   
   if (!profile) return null;
+
+  const ACTIVITY_CATEGORIES = [
+    { id: "family", label: t("activities.family.title") || "Family & Friends" },
+    { id: "memory_cards", label: t("activities.memory.title") || "Memory Cards" },
+    { id: "story_time", label: t("activities.story.title") || "Story Time" },
+    { id: "what_changed", label: t("activities.tetris.title") || "Mind Puzzle" },
+  ];
 
   const preferredActivities = profile.preferences?.preferredActivities || [];
 
@@ -48,7 +50,7 @@ export function ActivityPreferences() {
     <section className="w-full mb-6">
       <div className="pb-2 mb-3 border-b-2 border-[#1a1c1c]">
         <h2 className="font-display-lg text-xl sm:text-2xl font-black uppercase text-[#1a1c1c]">
-          Activity Preferences
+          {t("profile.activities.title") || "Activity Preferences"}
         </h2>
       </div>
 
@@ -57,10 +59,10 @@ export function ActivityPreferences() {
         {/* Category Selection */}
         <div>
           <span className="block font-headline-lg text-base font-black uppercase text-[#1a1c1c] mb-1">
-            Preferred Activities
+            {t("profile.activities.preferredTitle") || "Preferred Activities"}
           </span>
           <span className="block font-body-md text-xs sm:text-sm text-[#434655] mb-3">
-            Select exercise types you enjoy most for your daily routine
+            {t("profile.activities.preferredDesc") || "Select exercise types you enjoy most for your daily routine"}
           </span>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -97,11 +99,11 @@ export function ActivityPreferences() {
             <div className="flex items-center gap-1.5 mb-0.5">
               <Sparkles className="w-4 h-4 text-[#735c00]" />
               <span className="font-headline-lg text-sm sm:text-base font-black uppercase text-[#1a1c1c]">
-                Gentle Daily Moment
+                {t("profile.activities.dailyMoment") || "Gentle Daily Moment"}
               </span>
             </div>
             <span className="font-body-md text-xs text-[#434655]">
-              Get an automatic daily reminder
+              {t("profile.activities.dailyMomentDesc") || "Get an automatic daily reminder"}
             </span>
           </div>
 
@@ -114,7 +116,7 @@ export function ActivityPreferences() {
                 : "bg-[#ffdad6] text-[#ba1a1a] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
             }`}
           >
-            {(profile.preferences?.dailyActivity ?? true) ? "On" : "Off"}
+            {(profile.preferences?.dailyActivity ?? true) ? (t("common.on") || "On") : (t("common.off") || "Off")}
           </button>
         </div>
         

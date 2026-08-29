@@ -51,21 +51,17 @@ class SpeechService {
     }
   }
 
+  /**
+   * Speaks the provided text.
+   * TTS is strictly constrained to Hindi (hi-IN) and English (en-IN/en-US).
+   */
   async speak(text: string, lang: string = "en"): Promise<void> {
     if (!text || typeof window === "undefined") return;
 
-    // Normalize language key to standard TTS locale
-    let targetLang = "en-US";
-    const l = lang.toLowerCase().trim();
-
-    if (l === "hi" || l.startsWith("hi")) targetLang = "hi-IN";
-    else if (l === "bn" || l.startsWith("bn") || l === "bengali") targetLang = "bn-IN";
-    else if (l === "as" || l.startsWith("as") || l === "assamese") targetLang = "as-IN";
-    else if (l === "ne" || l.startsWith("ne") || l === "nepali") targetLang = "ne-NP";
-    else if (l === "mni" || l === "manipuri") targetLang = "bn-IN";
-    else if (l === "trp" || l === "kokborok") targetLang = "bn-IN";
-    else if (l === "kha" || l === "khasi" || l === "lus" || l === "mizo" || l === "nag" || l === "nagamese") targetLang = "en-IN";
-    else if (l === "en" || l.startsWith("en")) targetLang = "en-IN";
+    // Strict constraint: TTS is exclusively Hindi or English
+    const l = (lang || "").toLowerCase().trim();
+    const isHindi = l === "hi" || l.startsWith("hi") || l === "hindi";
+    const targetLang = isHindi ? "hi-IN" : "en-IN";
 
     // 1. Primary: Web Speech API (Browser & WebViews)
     if ("speechSynthesis" in window) {
@@ -81,12 +77,10 @@ class SpeechService {
           this.loadVoices();
         }
 
-        // Voice selection priority
-        const langPrefix = targetLang.split("-")[0];
-        const matchingVoice = this.voices.find((v) => 
-          v.lang.toLowerCase() === targetLang.toLowerCase() ||
-          v.lang.toLowerCase().startsWith(langPrefix)
-        ) || this.voices.find((v) => v.lang.toLowerCase().includes("in") || v.lang.toLowerCase().includes("en"));
+        // Voice selection: strictly match Hindi or English
+        const matchingVoice = isHindi
+          ? this.voices.find((v) => v.lang.toLowerCase().includes("hi") || v.name.toLowerCase().includes("hindi"))
+          : this.voices.find((v) => v.lang.toLowerCase() === "en-in" || v.lang.toLowerCase().includes("en"));
 
         if (matchingVoice) {
           utterance.voice = matchingVoice;
@@ -97,14 +91,20 @@ class SpeechService {
           resolve();
         };
 
-        utterance.onerror = (e) => {
-          console.warn("SpeechSynthesis error:", e);
+        utterance.onerror = (e: any) => {
+          if (e?.error !== "interrupted" && e?.error !== "canceled") {
+            console.warn("SpeechSynthesis notice:", e?.error || e);
+          }
           this.currentUtterance = null;
           resolve();
         };
 
         this.currentUtterance = utterance;
-        window.speechSynthesis.speak(utterance);
+        try {
+          window.speechSynthesis.speak(utterance);
+        } catch {
+          resolve();
+        }
       });
     }
 

@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { db } from "@/lib/db/dexie";
-import { Shield, Trash2, X, AlertTriangle } from "lucide-react";
+import { Shield, Trash2, AlertTriangle } from "lucide-react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export function PrivacySettings() {
+  const { t } = useLanguage();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [cleared, setCleared] = useState(false);
@@ -33,7 +35,7 @@ export function PrivacySettings() {
     <section className="w-full mb-6">
       <div className="pb-2 mb-3 border-b-2 border-[#1a1c1c]">
         <h2 className="font-display-lg text-xl sm:text-2xl font-black uppercase text-[#1a1c1c]">
-          Privacy & Device Storage
+          {t("profile.privacy.title") || "Privacy & Device Storage"}
         </h2>
       </div>
 
@@ -46,10 +48,10 @@ export function PrivacySettings() {
           </div>
           <div>
             <span className="block font-headline-lg text-sm font-black uppercase text-[#1a1c1c] mb-0.5">
-              100% Private Local Storage
+              {t("profile.privacy.localStorage") || "100% Private Local Storage"}
             </span>
             <span className="block font-body-md text-xs text-[#434655] leading-relaxed">
-              Your family photos and personal memories stay on your device and are never sent to third-party ad networks.
+              {t("profile.privacy.localStorageDesc") || "Your family photos and personal memories stay on your device and are never sent to third-party ad networks."}
             </span>
           </div>
         </div>
@@ -58,10 +60,10 @@ export function PrivacySettings() {
         <div className="pt-2 flex items-center justify-between gap-3">
           <div>
             <span className="block font-headline-lg text-sm font-black uppercase text-[#ba1a1a]">
-              Reset Local Memory Bank
+              {t("profile.privacy.resetBank") || "Reset Local Memory Bank"}
             </span>
             <span className="block font-body-md text-xs text-[#434655]">
-              Erase local photos and activity records
+              {t("profile.privacy.resetDesc") || "Erase local photos and activity records"}
             </span>
           </div>
 
@@ -71,7 +73,7 @@ export function PrivacySettings() {
             className="px-4 py-2 bg-[#ffdad6] text-[#ba1a1a] neo-border font-label-caps text-xs font-bold uppercase hover:bg-[#ffb4ab] transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px]"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            <span>Clear Data</span>
+            <span>{t("profile.privacy.clearData") || "Clear Data"}</span>
           </button>
         </div>
 
@@ -98,10 +100,10 @@ export function PrivacySettings() {
                 <AlertTriangle className="w-7 h-7 stroke-[2.5]" />
               </div>
               <h3 className="font-display-lg text-2xl font-black uppercase text-[#1a1c1c] mb-2">
-                Clear Local Data?
+                {t("profile.privacy.confirmTitle") || "Clear Local Data?"}
               </h3>
               <p className="font-body-md text-xs sm:text-sm text-[#434655] mb-6 leading-relaxed">
-                This will permanently delete all stored family photos, memories, and game scores from this browser.
+                {t("profile.privacy.confirmDesc") || "This will permanently delete all stored family photos, memories, and game scores from this browser."}
               </p>
               <div className="flex gap-3">
                 <button 
@@ -110,7 +112,7 @@ export function PrivacySettings() {
                   disabled={isClearing}
                   className="flex-1 py-3 bg-white text-[#1a1c1c] neo-border font-headline-lg text-xs uppercase font-black cursor-pointer hover:bg-[#f4f4f3]"
                 >
-                  Cancel
+                  {t("common.cancel") || "Cancel"}
                 </button>
                 <button 
                   type="button"
@@ -118,7 +120,7 @@ export function PrivacySettings() {
                   disabled={isClearing}
                   className="flex-1 py-3 bg-[#ba1a1a] text-white neo-border shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] font-headline-lg text-xs uppercase font-black cursor-pointer hover:bg-[#93000a] disabled:opacity-50"
                 >
-                  {isClearing ? "Clearing..." : "Yes, Delete"}
+                  {isClearing ? (t("common.pleaseWait") || "Clearing...") : (t("profile.privacy.yesDelete") || "Yes, Delete")}
                 </button>
               </div>
             </motion.div>
@@ -129,7 +131,7 @@ export function PrivacySettings() {
       {/* Success Toast */}
       {cleared && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#6bff8f] text-[#002109] neo-border font-label-caps text-xs font-bold uppercase px-6 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-50 animate-bounce">
-          ✓ Local memory data cleared successfully
+          ✓ {t("profile.privacy.dataCleared") || "Local memory data cleared successfully."}
         </div>
       )}
     </section>

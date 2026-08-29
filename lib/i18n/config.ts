@@ -8,25 +8,27 @@ export interface LanguageMetadata {
   supported: boolean;
   voiceInputSupported: boolean;
   ttsSupported: boolean;
-  speechCode?: string; // e.g. hi-IN
+  speechCode?: string; // e.g. hi-IN or en-IN
 }
 
 export const LANGUAGES: Record<string, LanguageMetadata> = {
   en: { code: "en", name: "English", nativeName: "English", direction: "ltr", supported: true, voiceInputSupported: true, ttsSupported: true, speechCode: "en-IN" },
   hi: { code: "hi", name: "Hindi", nativeName: "हिन्दी", direction: "ltr", supported: true, voiceInputSupported: true, ttsSupported: true, speechCode: "hi-IN" },
-  as: { code: "as", name: "Assamese", nativeName: "অসমীয়া", direction: "ltr", supported: false, voiceInputSupported: false, ttsSupported: false },
-  bn: { code: "bn", name: "Bengali", nativeName: "বাংলা", direction: "ltr", supported: false, voiceInputSupported: true, ttsSupported: true, speechCode: "bn-IN" },
-  kha: { code: "kha", name: "Khasi", nativeName: "Khasi", direction: "ltr", supported: false, voiceInputSupported: false, ttsSupported: false },
-  lus: { code: "lus", name: "Mizo", nativeName: "Mizo ṭawng", direction: "ltr", supported: false, voiceInputSupported: false, ttsSupported: false },
-  mni: { code: "mni", name: "Meitei", nativeName: "মৈতৈলোন", direction: "ltr", supported: false, voiceInputSupported: false, ttsSupported: false },
-  ne: { code: "ne", name: "Nepali", nativeName: "नेपाली", direction: "ltr", supported: false, voiceInputSupported: true, ttsSupported: true, speechCode: "ne-NP" },
-  nagamese: { code: "nagamese", name: "Nagamese", nativeName: "Nagamese", direction: "ltr", supported: false, voiceInputSupported: false, ttsSupported: false },
-  kok: { code: "kok", name: "Kokborok", nativeName: "Kokborok", direction: "ltr", supported: false, voiceInputSupported: false, ttsSupported: false },
-  adi: { code: "adi", name: "Adi", nativeName: "Adi", direction: "ltr", supported: false, voiceInputSupported: false, ttsSupported: false },
-  njo: { code: "njo", name: "Nyishi", nativeName: "Nyishi", direction: "ltr", supported: false, voiceInputSupported: false, ttsSupported: false },
-  garo: { code: "garo", name: "Garo", nativeName: "A·chik", direction: "ltr", supported: false, voiceInputSupported: false, ttsSupported: false },
-  sip: { code: "sip", name: "Sikkimese", nativeName: "འབྲས་ལྗོངས་སྐད་", direction: "ltr", supported: false, voiceInputSupported: false, ttsSupported: false },
-  lep: { code: "lep", name: "Lepcha", nativeName: "ᰛᰩᰵᰛᰧᰵᰶ", direction: "ltr", supported: false, voiceInputSupported: false, ttsSupported: false }
+  as: { code: "as", name: "Assamese", nativeName: "অসমীয়া", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "en-IN" },
+  bn: { code: "bn", name: "Bengali", nativeName: "বাংলা", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "en-IN" },
+  kha: { code: "kha", name: "Khasi", nativeName: "Khasi", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "en-IN" },
+  lus: { code: "lus", name: "Mizo", nativeName: "Mizo ṭawng", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "en-IN" },
+  mni: { code: "mni", name: "Meitei", nativeName: "মৈতৈলোন", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "en-IN" },
+  ne: { code: "ne", name: "Nepali", nativeName: "नेपाली", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "hi-IN" },
+  nag: { code: "nag", name: "Nagamese", nativeName: "Nagamese", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "en-IN" },
+  nagamese: { code: "nagamese", name: "Nagamese", nativeName: "Nagamese", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "en-IN" },
+  kok: { code: "kok", name: "Kokborok", nativeName: "Kokborok", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "en-IN" },
+  trp: { code: "trp", name: "Kokborok", nativeName: "Kokborok", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "en-IN" },
+  adi: { code: "adi", name: "Adi", nativeName: "Adi", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "en-IN" },
+  njo: { code: "njo", name: "Nyishi", nativeName: "Nyishi", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "en-IN" },
+  garo: { code: "garo", name: "Garo", nativeName: "A·chik", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "en-IN" },
+  sip: { code: "sip", name: "Sikkimese", nativeName: "འབྲས་ལྗོངས་སྐད་", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "en-IN" },
+  lep: { code: "lep", name: "Lepcha", nativeName: "ᰛᰩᰵᰛᰧᰵᰶ", direction: "ltr", supported: true, voiceInputSupported: false, ttsSupported: false, speechCode: "en-IN" }
 };
 
 export interface RegionLanguageConfig {

@@ -181,8 +181,8 @@ export function StoryPlayer({
               {isTranslating 
                 ? "Translating..." 
                 : isPlaying 
-                ? `Speaking in ${currentLangObj.name}...` 
-                : `Ready in ${currentLangObj.name}`}
+                ? (activeLang === "hi" ? "Speaking in Hindi..." : "Speaking in English...") 
+                : (activeLang === "hi" ? "Ready (Hindi Audio)" : "Ready (English Audio)")}
             </p>
 
             {/* 3 Bouncing Colored Dots */}
@@ -210,7 +210,7 @@ export function StoryPlayer({
                 className="flex-1 max-w-[220px] py-3.5 px-4 bg-[#2563eb] text-white neo-border shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[1px] hover:translate-x-[1px] active:translate-y-[3px] active:translate-x-[3px] active:shadow-none transition-all font-headline-lg text-base sm:text-lg uppercase font-black tracking-wider flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-current" />}
-                <span>{isPlaying ? "Pause" : `Listen (${currentLangObj.name})`}</span>
+                <span>{isPlaying ? "Pause" : (activeLang === "hi" ? "Listen (Hindi)" : "Listen (English)")}</span>
               </button>
             </div>
           </div>
